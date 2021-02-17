@@ -1,5 +1,11 @@
-<div class="row justify-content-md-center" style="margin-top: 30px">
-    <div class="col-md-4">
+<div class="row justify-content-md-center" > <!-- style="margin-top: 30px" -->
+    <div id="register" class="col-md-4">
+
+        <div class="center">
+            <img class="mb-4" src="https://getbootstrap.com/docs/5.0/assets/brand/bootstrap-logo.svg"
+                 alt="" width="72" height="57">
+            <h1 class="h3 mb-3 fw-normal">Redirector Registration</h1>
+        </div>
 
         {{#if message}}
             <div class="alert {{messageClass}}" role="alert">
@@ -8,15 +14,15 @@
         {{/if}}
 
         <form method="POST" action="/register">
-<!--            <div class="form-group">-->
-<!--                <label for="firstNameInput">First Name</label>-->
-<!--                <input name="firstName" type="text" class="form-control" id="firstNameInput">-->
-<!--            </div>-->
+            <!--            <div class="form-group">-->
+            <!--                <label for="firstNameInput">First Name</label>-->
+            <!--                <input name="firstName" type="text" class="form-control" id="firstNameInput">-->
+            <!--            </div>-->
 
-<!--            <div class="form-group">-->
-<!--                <label for="lastNameInput">Last Name</label>-->
-<!--                <input name="firstName" type="text" class="form-control" id="lastNameInput">-->
-<!--            </div>-->
+            <!--            <div class="form-group">-->
+            <!--                <label for="lastNameInput">Last Name</label>-->
+            <!--                <input name="firstName" type="text" class="form-control" id="lastNameInput">-->
+            <!--            </div>-->
 
             <div class="form-group">
                 <label for="username">User name:</label>
@@ -31,10 +37,18 @@
             <div class="form-group">
                 <label for="confirmPasswordInput">Confirm Password:</label>
                 <input name="confirmPassword" type="password" class="form-control" id="confirmPasswordInput"
-                       placeholder="Re-enter your password here">
+                       placeholder="Re-enter password">
             </div>
 
-            <button type="submit" class="btn btn-primary">Login</button>
+            {{#if message}}
+                <div class="alert {{messageClass}}" role="alert">
+                    {{message}}
+                </div>
+            {{/if}}
+
+            <div class="center" style="padding-bottom:2em;">
+                <button type="submit" class="btn btn-primary">Register</button>
+            </div>
         </form>
     </div>
 </div>

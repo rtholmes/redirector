@@ -12,8 +12,8 @@ import { ApplicationError } from './types';
 import { normalizePort } from './util';
 import { SERVER_ROOT } from './constants';
 
-import IndexRouter from './routes';
-import UserRouter from './routes/users';
+import PublicRouter from './routes/public';
+import AdminRouter from './routes/admin';
 
 const debug = debugLib("server");
 
@@ -32,8 +32,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 // app.use(express.static(path.join(SERVER_ROOT, 'public')));
 
-app.use('/', IndexRouter);
-// app.use('/users', UserRouter);
+app.use('/', AdminRouter);
+app.use('/', PublicRouter);
 
 app.engine('hbs', exphbs({
   extname: '.hbs'

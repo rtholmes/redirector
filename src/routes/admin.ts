@@ -1,5 +1,9 @@
 import express, {NextFunction, Request, Response} from "express";
-import fs from "fs";
+
+const crypto = require("crypto");
+const moment = require("moment");
+
+import {getLink, isValidURL, read, write} from "../util";
 
 const router = express.Router();
 
@@ -19,12 +23,6 @@ router.use((req, res, next) => {
     console.log('authCheck: token: ' + JSON.stringify((req as any).authToken));
 
     next();
-});
-
-// GET index (show nothing)
-router.get("/", async function (req, res, next) {
-    // TODO: redirect to https://se.cs.ubc.ca/
-    res.render('home');
 });
 
 router.get('/register', (req, res) => {
@@ -59,25 +57,48 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 router.get('/protected', requireAuth, async function (req, res) {
-    const links = read("data/links.json");
+    const links = listLinks((req as any).authUser); // read("data/links.json");
     res.render('protected', {
         linkTable: links
     });
 });
 
 router.post("/createLink", requireAuth, async function (req, res, next) {
-    const {name, url} = req.body;
+    let {name, url} = req.body;
     console.log("/createLink - start; name: " + name + "; url: " + url);
 
     const links = read("data/links.json");
 
     if (typeof name === "string" && typeof url === "string") {
+        name = name.trim();
+        url = url.trim();
+
+        let threeChars = new RegExp("/(.*[a-z]){3}/i");
+        if (name.length === 0) {
+            // generate name
+            // TODO: do this better:
+            //   * ensure it at least starts with one char
+            //   * ensure the name does not already exist
+            // TODO: if name ends in /*, replace * with a generated link
+            //   * good for specified prefixes like: cs310/* -> cs310/f32d
+            name = crypto.randomBytes(2).toString('hex');
+            console.log("/createLink - generated name: " + name);
+        } else if (threeChars.test(name) === false) {
+            let threeChars = new RegExp("/(.*[a-z]){3}/i");
+            res.render('protected', {
+                message: 'Name must be > 3 letters (or blank).',
+                messageClass: 'alert-danger',
+                linkTable: links
+            });
+            return;
+        }
+
         const exists = getLink(name);
 
-        if (!url.startsWith("https://") && !url.startsWith("http://")) {
+        if (isValidURL(url) === false) {
             // not a valid url
             res.render('protected', {
-                message: 'Link must start with http or https.',
+                message: 'Link must be a valid URL.',
                 messageClass: 'alert-danger',
                 linkTable: links
             });
@@ -96,17 +117,22 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 
         // must be new and valid; make it!
         console.log("/createLink - make new; name: " + name + "; url: " + url);
+        
+        let dStr = moment(). format('YYYY-MM-DD_hh:mm:SS');
 
         links.push({
             name: name,
             user: (req as any).authUser,
-            created: new Date().toDateString()+" "+new Date().toLocaleTimeString(), // TODO: better date format
+            created: dStr,
             url: url
         });
         write("data/links.json", links);
 
         res.render('protected', {
-            message: 'Link successfully created.',
+            message: 'Link successfully created:',
+            newURL: url,
+            newName: name,
+            newHost: 'http://localhost:3000/' + name, // TODO: newHost should not be hardcoded
             messageClass: 'alert-success',
             linkTable: links
         });
@@ -117,73 +143,35 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     }
 });
 
-router.get("/removeLink/:id", async function (req: Request, res: Response, next) {
-    console.log("/list - start");
-});
+// router.get("/removeLink/:id", async function (req: Request, res: Response, next) {
+//     console.log("/list - start");
+// });
 
-router.get("/list", async function (req: Request, res: Response, next) {
-    // res.render("index", { title: "Express LIST PAGE" });
-    console.log("/list - start; path: " + req.path + "; params: " +
-        JSON.stringify(req.params) + "; query: " + JSON.stringify(req.query));
+// router.get("/list", async function (req: Request, res: Response, next) {
+//     // res.render("index", { title: "Express LIST PAGE" });
+//     console.log("/list - start; path: " + req.path + "; params: " +
+//         JSON.stringify(req.params) + "; query: " + JSON.stringify(req.query));
+//
+//     const login = getAuth(req);
+//     if (login !== null && isAuthorized(login.user, login.auth)) {
+//         console.log("/list - authorized");
+//         const body = listLinks(login.user);
+//         res.json({list: body}); // forward to "https://se.cs.ubc.ca"
+//     } else {
+//         console.log("/list - NOT authorized");
+//         res.json({list: "listPageNOTAUTH"}); // forward to "https://se.cs.ubc.ca"
+//     }
+// });
 
-    const login = getAuth(req);
-    if (login !== null && isAuthorized(login.user, login.auth)) {
-        console.log("/list - authorized");
-        const body = listLinks(login.user);
-        res.json({list: body}); // forward to "https://se.cs.ubc.ca"
-    } else {
-        console.log("/list - NOT authorized");
-        res.json({list: "listPageNOTAUTH"}); // forward to "https://se.cs.ubc.ca"
-    }
-});
+// function getAuth(req: Request): { user: string, auth: string } | null {
+//     // TODO: follow this: https://stackabuse.com/handling-authentication-in-express-js/
+//     // this is not great, but for now just use appended query args
+//     if (req.query && req.query.user && req.query.auth) {
+//         return {user: req.query.user, auth: req.query.auth};
+//     }
+//     return null;
+// }
 
-// GET link (forward to link)
-router.get("/*", async function (req, res, next) {
-    let name = req.path;
-    if (name.startsWith("/")) {
-        name = name.substr(1); // trim first slash, if it exists
-    }
-    const url = getLink(name);
-
-    if (url !== null) {
-        // using a meta tag is hacky, just do a proper redirect
-        // const redirect = '<meta http-equiv="refresh" content="0; URL="' + url + '" />';
-        // res.status(301);
-        // res.send(redirect);
-
-        res.redirect(301, url);
-    } else {
-        res.json({link: 'se.cs.ubc.ca'});
-    }
-});
-
-function getAuth(req: Request): { user: string, auth: string } | null {
-    // TODO: follow this: https://stackabuse.com/handling-authentication-in-express-js/
-    // this is not great, but for now just use appended query args
-    if (req.query && req.query.user && req.query.auth) {
-        return {user: req.query.user, auth: req.query.auth};
-    }
-    return null;
-}
-
-/**
- * Get the link to follow. If it does not exist, return null.
- *
- * @param name
- */
-function getLink(name: string): string | null {
-    console.log("getLink( " + name + " ) - start");
-    const links = read("data/links.json");
-    for (const link of links) {
-        console.log("getLink( " + name + " ) - name: " + link.name);
-        if (link.name === name) {
-            console.log("getLink( " + name + " ) - found: " + link.url);
-            return link.url;
-        }
-    }
-    console.log("getLink( " + name + " ) - NOT found");
-    return null;
-}
 
 /**
  *
@@ -234,28 +222,6 @@ function listLinks(user: string): any {
  *
  */
 
-/**
- * Read JSON data file
- * @param fName
- */
-function read(fName: string): any[] {
-    const rawData = fs.readFileSync(fName);
-    const data: any = JSON.parse(rawData as any);
-    return data;
-}
-
-/**
- * Write JSON object to file
- * @param fName
- * @param data
- */
-function write(fName: string, data: any) {
-    fs.writeFileSync(fName, JSON.stringify(data));
-    return;
-}
-
-
-const crypto = require('crypto');
 
 const getHashedPassword = (password: any) => {
     const sha256 = crypto.createHash('sha256');
@@ -287,7 +253,7 @@ router.post('/register', (req, res) => {
         if (users.find(user => user.username === username)) {
 
             res.render('register', {
-                message: 'User already registered.',
+                message: 'User name registered.',
                 messageClass: 'alert-danger'
             });
 
@@ -304,7 +270,7 @@ router.post('/register', (req, res) => {
         write("data/users.json", users);
 
         res.render('login', {
-            message: 'Registration Complete. Please login to continue.',
+            message: 'Registration successful. Please login.',
             messageClass: 'alert-success'
         });
     } else {
