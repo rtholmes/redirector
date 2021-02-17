@@ -1,5 +1,6 @@
-import express, {Request, Response, NextFunction} from 'express';
+import express, {Request, Response, NextFunction} from "express";
 import {getLink} from "../util";
+import {PATH_PREFIX} from "../constants";
 
 const router = express.Router();
 
@@ -9,9 +10,13 @@ const router = express.Router();
  * on admins.
  */
 router.get("/", async function (req, res, next) {
-    // res.render('home');
-    sendToDefault(res);
+    console.log("default route");
+    // res.render("home");
+    res.json({home: true});
+    // sendToDefault(res);
+    return;
 });
+
 
 /**
  * Main forwarding route.
@@ -25,20 +30,22 @@ router.get("/*", async function (req, res, next) {
 
     if (url !== null) {
         // using a meta tag is hacky, just do a proper redirect
-        // const redirect = '<meta http-equiv="refresh" content="0; URL="' + url + '" />';
+        // const redirect = "<meta http-equiv="refresh" content="0; URL="" + url + "" />";
         // res.status(301);
         // res.send(redirect);
 
         res.redirect(301, url);
     } else {
-        res.json({link: 'se.cs.ubc.ca'});
+        res.json({link: "se.cs.ubc.ca"});
         sendToDefault(res);
     }
 });
 
 function sendToDefault(res: Response) {
+    console.log("sendToDefault");
     // TODO: make this a param
-    res.redirect(301, "https://se.cs.ubc.ca/");
+    // res.redirect(301, "https://se.cs.ubc.ca/");
+    res.json({link: "se.cs.ubc.ca"});
 }
 
 export default router;

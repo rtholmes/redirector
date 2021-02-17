@@ -1,6 +1,6 @@
 import express, {NextFunction, Request, Response} from "express";
 import {getLink, isValidURL, read, write} from "../util";
-import {HOST_PREFIX, LINKS_FILE, USERS_FILE} from "../constants";
+import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
 
 const crypto = require("crypto");
 const moment = require("moment");
@@ -10,24 +10,24 @@ const router = express.Router();
 // should be first
 router.use((req, res, next) => {
     // Get auth token from the cookies
-    const authToken = req.cookies['AuthToken'];
-    const authUser = req.cookies['AuthUser'];
+    const authToken = req.cookies["AuthToken"];
+    const authUser = req.cookies["AuthUser"];
 
     // inject the auth details into request
     (req as any).authToken = authToken;
     (req as any).authUser = authUser;
 
-    // console.log('authCheck: user: ' + JSON.stringify((req as any).authUser));
-    // console.log('authCheck: token: ' + JSON.stringify((req as any).authToken));
+    // console.log("authCheck: user: " + JSON.stringify((req as any).authUser));
+    // console.log("authCheck: token: " + JSON.stringify((req as any).authToken));
     next();
 });
 
-router.get('/register', (req, res) => {
-    res.render('register');
+router.get("/register", (req, res) => {
+    res.render("register");
 });
 
-router.get('/login', (req, res) => {
-    res.render('login');
+router.get("/login", (req, res) => {
+    res.render("login");
 });
 
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -46,16 +46,16 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
         }
     }
     if (login === false) {
-        res.render('login', {
-            message: 'Please login to continue.',
-            messageClass: 'alert-danger'
+        res.render("login", {
+            message: "Please login to continue.",
+            messageClass: "alert-danger"
         });
     }
 };
 
-router.get('/protected', requireAuth, async function (req, res) {
+router.get("/protected", requireAuth, async function (req, res) {
     const links = listLinks((req as any).authUser);
-    res.render('protected', {
+    res.render("protected", {
         linkTable: links
     });
 });
@@ -72,7 +72,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 
         while (name.indexOf("*") >= 0) {
             // transform * into generated chars
-            const part = crypto.randomBytes(2).toString('hex');
+            const part = crypto.randomBytes(2).toString("hex");
             name = name.replace("*", part); // replace only does one instance at a time
             console.log("/createLink - replaced *; name: " + name);
         }
@@ -80,7 +80,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         // const threeChars = new RegExp("/(.*[a-z]){3}/i");
         if (name.length === 0) {
             // generate name (does not check for collisions)
-            name = crypto.randomBytes(2).toString('hex');
+            name = crypto.randomBytes(2).toString("hex");
             name = name.toLowerCase(); // easier typing on mobile
             if (/^[a-z]/i.test(name) === false) {
                 // ensure name starts with a letter
@@ -89,11 +89,11 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             }
 
             console.log("/createLink - final generated name: " + name);
-        } else if (name.length<3) {
+        } else if (name.length < 3) {
             // let threeChars = new RegExp("/(.*[a-z]){3}/i");
-            res.render('protected', {
-                message: 'Name must be > 3 letters (or blank).',
-                messageClass: 'alert-danger',
+            res.render("protected", {
+                message: "Name must be > 3 letters (or blank).",
+                messageClass: "alert-danger",
                 linkTable: links
             });
             return;
@@ -101,9 +101,9 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 
         if (isValidURL(url) === false) {
             // not a valid url
-            res.render('protected', {
-                message: 'Link must be a valid URL.',
-                messageClass: 'alert-danger',
+            res.render("protected", {
+                message: "Link must be a valid URL.",
+                messageClass: "alert-danger",
                 linkTable: links
             });
             return;
@@ -112,9 +112,9 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         const exists = getLink(name);
         if (exists !== null) {
             // already exists
-            res.render('protected', {
-                message: 'Name is already taken.',
-                messageClass: 'alert-danger',
+            res.render("protected", {
+                message: "Name is already taken.",
+                messageClass: "alert-danger",
                 linkTable: links
             });
             return;
@@ -123,7 +123,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         // must be new and valid; make it!
         console.log("/createLink - make new; name: " + name + "; url: " + url);
 
-        let dStr = moment().format('YYYY-MM-DD_hh:mm:SS');
+        let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
 
         links.push({
             name: name,
@@ -133,12 +133,12 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         });
         write(LINKS_FILE, links);
 
-        res.render('protected', {
-            message: 'Link successfully created:',
+        res.render("protected", {
+            message: "Link successfully created:",
             newURL: url,
             newName: name,
-            newHost: HOST_PREFIX + name,
-            messageClass: 'alert-success',
+            newHost: HOST_PREFIX + PATH_PREFIX + name,
+            messageClass: "alert-success",
             linkTable: links
         });
 
@@ -176,14 +176,14 @@ function listLinks(user: string): any {
     return ret;
 }
 
-router.post('/register', (req, res) => {
+router.post("/register", (req, res) => {
     const {username, password, confirmPassword} = req.body;
 
     // ensure passwords match
     if (password !== confirmPassword) {
-        res.render('register', {
-            message: 'Password does not match.',
-            messageClass: 'alert-danger'
+        res.render("register", {
+            message: "Password does not match.",
+            messageClass: "alert-danger"
         });
         return;
     }
@@ -191,9 +191,9 @@ router.post('/register', (req, res) => {
     // ensure user does not already exist
     const users = read(USERS_FILE);
     if (users.find(user => user.username === username)) {
-        res.render('register', {
-            message: 'User name registered.',
-            messageClass: 'alert-danger'
+        res.render("register", {
+            message: "User name registered.",
+            messageClass: "alert-danger"
         });
         return;
     }
@@ -207,14 +207,14 @@ router.post('/register', (req, res) => {
     write(USERS_FILE, users);
 
     // forward to login page
-    res.render('login', {
-        message: 'Registration successful. Please login.',
-        messageClass: 'alert-success'
+    res.render("login", {
+        message: "Registration successful. Please login.",
+        messageClass: "alert-success"
     });
 });
 
-router.post('/login', (req, res) => {
-    console.log('logins/ - start');
+router.post("/login", (req, res) => {
+    console.log("logins/ - start");
     const {username, password} = req.body;
 
     const hashedPassword = getHashedPassword(password);
@@ -226,32 +226,32 @@ router.post('/login', (req, res) => {
     });
 
     if (user) {
-        console.log('logins/ - successful; username: ' + username);
+        console.log("logins/ - successful; username: " + username);
         // login successful
         const authToken = getHashedPassword(hashedPassword);
 
         // Setting the auth details in cookies
-        res.cookie('AuthToken', authToken);
-        res.cookie('AuthUser', username);
+        res.cookie("AuthToken", authToken);
+        res.cookie("AuthUser", username);
 
         // Redirect user to the protected page
-        res.redirect('/protected');
+        res.redirect("protected");
     } else {
-        console.log('logins/ - failed; username: ' + username);
-        res.cookie('AuthToken', '');
-        res.cookie('AuthUser', '');
+        console.log("logins/ - failed; username: " + username);
+        res.cookie("AuthToken", "");
+        res.cookie("AuthUser", "");
 
         // login failed
-        res.render('login', {
-            message: 'Invalid username or password.',
-            messageClass: 'alert-danger'
+        res.render("login", {
+            message: "Invalid username or password.",
+            messageClass: "alert-danger"
         });
     }
 });
 
 const getHashedPassword = (password: any) => {
-    const sha256 = crypto.createHash('sha256');
-    const hash = sha256.update(password).digest('base64');
+    const sha256 = crypto.createHash("sha256");
+    const hash = sha256.update(password).digest("base64");
     return hash;
 }
 
