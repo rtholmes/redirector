@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const moment = require("moment");
 
 import {getLink, isValidURL, read, write} from "../util";
+import {HOST_PREFIX, LINKS_FILE, USERS_FILE} from "../constants";
 
 const router = express.Router();
 
@@ -37,7 +38,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
         const authUser = (req as any).authUser;
         const authToken = (req as any).authToken;
 
-        const users = read("data/users.json");
+        const users = read(USERS_FILE);
         const user = users.find(user => user.username === authUser);
 
         if (user !== null && getHashedPassword(user.password) === authToken) {
@@ -54,7 +55,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 router.get('/protected', requireAuth, async function (req, res) {
-    const links = listLinks((req as any).authUser); // read("data/links.json");
+    const links = listLinks((req as any).authUser);
     res.render('protected', {
         linkTable: links
     });
@@ -64,7 +65,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     let {name, url} = req.body;
     console.log("/createLink - start; name: " + name + "; url: " + url);
 
-    const links = read("data/links.json");
+    const links = read(LINKS_FILE);
 
     if (typeof name === "string" && typeof url === "string") {
         name = name.trim();
@@ -122,13 +123,13 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             created: dStr,
             url: url
         });
-        write("data/links.json", links);
+        write(LINKS_FILE, links);
 
         res.render('protected', {
             message: 'Link successfully created:',
             newURL: url,
             newName: name,
-            newHost: 'http://localhost:3000/' + name, // TODO: newHost should not be hardcoded
+            newHost: HOST_PREFIX + name,
             messageClass: 'alert-success',
             linkTable: links
         });
@@ -155,7 +156,7 @@ function createLink(name: string, url: string, user: string, auth: string) {
 function listLinks(user: string): any {
     console.log("listLinks( " + user + " ) - start");
     const ret = [];
-    const links = read("data/links.json");
+    const links = read(LINKS_FILE);
     for (const link of links) {
         if (user === "admin" || link.user === user) {
             // can only see your links (except for admin, who sees all)
@@ -180,7 +181,7 @@ router.post('/register', (req, res) => {
     }
 
     // ensure user does not already exist
-    const users = read('data/users.json');
+    const users = read(USERS_FILE);
     if (users.find(user => user.username === username)) {
         res.render('register', {
             message: 'User name registered.',
@@ -195,7 +196,7 @@ router.post('/register', (req, res) => {
         username: username,
         password: hashedPassword
     });
-    write("data/users.json", users);
+    write(USERS_FILE, users);
 
     // forward to login page
     res.render('login', {
@@ -211,7 +212,7 @@ router.post('/login', (req, res) => {
     const hashedPassword = getHashedPassword(password);
     // console.log("logins: " + JSON.stringify(req.body));
 
-    const users = read("data/users.json");
+    const users = read(USERS_FILE);
     const user = users.find(u => {
         return u.username === username && hashedPassword === u.password
     });
@@ -245,6 +246,5 @@ const getHashedPassword = (password: any) => {
     const hash = sha256.update(password).digest('base64');
     return hash;
 }
-
 
 export default router;
