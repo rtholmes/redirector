@@ -1,0 +1,52 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Link View Page</a>
+</nav>
+
+<div>
+
+    <div style="padding-top:1em; padding-bottom: 1em;">
+        <h3>Create Link</h3>
+        {{#if message}}
+            <div class="alert {{messageClass}}" role="alert">
+                {{message}}
+            </div>
+        {{/if}}
+        <form method="POST" action="/createLink">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input name="name" type="text" class="form-control" id="name" placeholder="Enter Short Name">
+            </div>
+            <div class="form-group">
+                <label for="url">Name</label>
+                <input name="url" type="text" class="form-control" id="url" placeholder="Enter URL">
+            </div>
+            <button type="submit" class="btn btn-primary">Create Pretty Link</button>
+        </form>
+    </div>
+
+    <div style="padding-top:1em; padding-bottom: 1em;">
+        <h3>Link List</h3>
+        <table style="width: 100%;">
+            <thead>
+            <tr>
+                <th>Delete</th>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Owner</th>
+                <th>Created</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#each linkTable}}
+                <tr>
+                    <td><a href="/removeLink/{{name}}">DEL</a></td>
+                    <td><a href="{{url}}">{{name}}</a></td>
+                    <td><a href="{{url}}">{{url}}</a></td>
+                    <td>{{user}}</td>
+                    <td>{{created}}</td>
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
