@@ -1,6 +1,5 @@
-import express, {Request, Response, NextFunction} from "express";
+import express, {Response} from "express";
 import {getLink} from "../util";
-import {PATH_PREFIX} from "../constants";
 
 const router = express.Router();
 
@@ -12,8 +11,8 @@ const router = express.Router();
 router.get("/", async function (req, res, next) {
     console.log("default route");
     // res.render("home");
-    res.json({home: true});
-    // sendToDefault(res);
+    // res.json({home: true});
+    sendToDefault(res, null);
     return;
 });
 
@@ -23,6 +22,17 @@ router.get("/", async function (req, res, next) {
  */
 router.get("/*", async function (req, res, next) {
     let name = req.path;
+    console.log("/* - start; name: " + name);
+    doRedirect(name, res);
+});
+
+router.post("/fwd", async function (req, res, next) {
+    let name = req.body.name;
+    console.log("/fwd - start; name: " + name);
+    doRedirect(name, res);
+});
+
+function doRedirect(name: string, res: Response) {
     if (name.startsWith("/")) {
         name = name.substr(1); // trim first slash, if it exists
     }
@@ -36,16 +46,23 @@ router.get("/*", async function (req, res, next) {
 
         res.redirect(301, url);
     } else {
-        res.json({link: "se.cs.ubc.ca"});
-        sendToDefault(res);
+        // res.json({link: "se.cs.ubc.ca"});
+        sendToDefault(res, {
+            message: "Name not found: " + name,
+            messageClass: "alert-danger"
+        });
     }
-});
+}
 
-function sendToDefault(res: Response) {
+function sendToDefault(res: Response, msg: any | null) {
     console.log("sendToDefault");
-    // TODO: make this a param
     // res.redirect(301, "https://se.cs.ubc.ca/");
-    res.json({link: "se.cs.ubc.ca"});
+    // res.json({link: "se.cs.ubc.ca"});
+    if (msg === null) {
+        res.render("home");
+    } else {
+        res.render("home", msg);
+    }
 }
 
 export default router;

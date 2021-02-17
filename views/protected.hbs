@@ -3,6 +3,10 @@
 <!--</nav>-->
 
 <div>
+    <div class="center" style="padding-top: 2em;">
+        <img class="mb-4" src="static/icon.png"
+             alt="" width="72" height="57">
+    </div>
     <div style="padding-top:1em; padding-bottom: 1em;">
         <h3>Create New Link</h3>
         {{#if message}}
@@ -10,7 +14,8 @@
                 {{message}}
                 {{#if newURL}}
                     <div style="padding-top:0.5em">
-                        <a href="{{newHost}}">{{newHost}}</a> <br/> <b>&nbsp;&nbsp;-></b> <br/><a href="{{newURL}}">{{newURL}}</a>
+                        <a href="{{newHost}}">{{newHost}}</a> <br/> <b>&nbsp;&nbsp;-></b> <br/><a
+                            href="{{newURL}}">{{newURL}}</a>
                     </div>
                 {{/if}}
             </div>
@@ -18,7 +23,8 @@
 
         <form method="POST" action="createLink">
             <div class="form-group">
-                <label for="name"><b>Name</b> (e.g., guestTalk or social/gameLink). <br/>* will be generated (e.g., foo/* -> foo/a23s). <br/>If blank, a random name will be generated.</label>
+                <label for="name"><b>Name</b> (e.g., guestTalk or social/gameLink). <br/>* will be generated (e.g.,
+                    foo/* -> foo/a23s). <br/>If blank, a random name will be generated.</label>
                 <input name="name" type="text" class="form-control" id="name" placeholder="Enter Short Name">
             </div>
             <div class="form-group">

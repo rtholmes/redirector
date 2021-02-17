@@ -1,8 +1,44 @@
+<!--
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="#">se.cs.ubc.ca go service</a>
 </nav>
+-->
 
+<div class="row justify-content-md-center" style="margin-top: 4em;">
+    <div class="col-md-6">
+
+        <div class="center">
+            <img class="mb-4" src="static/icon.png"
+                 alt="" width="72" height="57">
+            <h1 class="h3 mb-3 fw-normal">Redirector</h1>
+
+            {{#if message}}
+                <div class="alert {{messageClass}}" role="alert">
+                    {{message}}
+                </div>
+            {{/if}}
+
+            <h3 class="h5 mb-3 fw-normal">Enter Name</h3>
+
+            <form method="POST" action="fwd">
+
+                <div class="form-group">
+<!--                    <label for="username">User name:</label>-->
+                    <input name="name" type="text" class="form-control" id="name" placeholder="Enter name">
+                </div>
+
+
+                <div class="center" style="padding-bottom:2em;">
+                    <button type="submit" class="btn btn-primary">Go!</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<!--
 <div style="margin-top: 30px;">
     <a class="btn btn-primary btn-lg active" href="/login">Login</a>
     <a class="btn btn-primary btn-lg active" href="/register">Register</a>
 </div>
+-->
