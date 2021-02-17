@@ -32,8 +32,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 // app.use(express.static(path.join(SERVER_ROOT, "public")));
 
-app.use(PATH_PREFIX, AdminRouter);
-app.use(PATH_PREFIX, PublicRouter);
+app.use('/', AdminRouter);
+app.use('/', PublicRouter);
 
 app.engine("hbs", exphbs({
     extname: ".hbs"
