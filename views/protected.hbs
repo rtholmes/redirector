@@ -16,7 +16,7 @@
             </div>
         {{/if}}
 
-        <form method="POST" action="/createLink">
+        <form method="POST" action="createLink">
             <div class="form-group">
                 <label for="name"><b>Name</b> (e.g., guestTalk or social/gameLink). <br/>* will be generated (e.g., foo/* -> foo/a23s). <br/>If blank, a random name will be generated.</label>
                 <input name="name" type="text" class="form-control" id="name" placeholder="Enter Short Name">
@@ -25,7 +25,7 @@
                 <label for="url"><b>URL</b> (must start with http:// or https://).</label>
                 <input name="url" type="text" class="form-control" id="url" placeholder="Enter URL">
             </div>
-            <button type="submit" class="btn btn-primary">Create Pretty Link</button>
+            <button type="submit" class="btn btn-primary">Create Link</button>
         </form>
     </div>
 
@@ -44,7 +44,7 @@
             <tbody>
             {{#each linkTable}}
                 <tr>
-                    <td><a href="/removeLink/{{name}}">DEL</a></td>
+                    <td><a href="removeLink/{{name}}">DEL</a></td>
                     <td><a href="{{url}}">{{name}}</a></td>
                     <td><a href="{{url}}">{{url}}</a></td>
                     <td>{{user}}</td>
