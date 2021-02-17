@@ -99,6 +99,17 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             return;
         }
 
+        if (name.indexOf("admin") < 3) {
+            // admin/* is for Redirector
+            // add the 3 check just to protect against /admin
+            res.render("protected", {
+                message: "Name cannot start with 'admin'.",
+                messageClass: "alert-danger",
+                linkTable: links
+            });
+            return;
+        }
+
         if (isValidURL(url) === false) {
             // not a valid url
             res.render("protected", {
