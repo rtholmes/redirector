@@ -13,15 +13,12 @@ router.use((req, res, next) => {
     const authToken = req.cookies['AuthToken'];
     const authUser = req.cookies['AuthUser'];
 
-    // Inject the user to the request
-    // @ts-ignore
-    // req.authToken = authTokens[authToken];
-    (req as any).authToken = authToken; // authTokens[authToken];
+    // inject the auth details into request
+    (req as any).authToken = authToken;
     (req as any).authUser = authUser;
-    // console.log('auth token: '+JSON.stringify(req.cookies));
-    console.log('authCheck: user: ' + JSON.stringify((req as any).authUser));
-    console.log('authCheck: token: ' + JSON.stringify((req as any).authToken));
 
+    // console.log('authCheck: user: ' + JSON.stringify((req as any).authUser));
+    // console.log('authCheck: token: ' + JSON.stringify((req as any).authToken));
     next();
 });
 
@@ -93,8 +90,6 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             return;
         }
 
-        const exists = getLink(name);
-
         if (isValidURL(url) === false) {
             // not a valid url
             res.render('protected', {
@@ -105,6 +100,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             return;
         }
 
+        const exists = getLink(name);
         if (exists !== null) {
             // already exists
             res.render('protected', {
@@ -117,8 +113,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 
         // must be new and valid; make it!
         console.log("/createLink - make new; name: " + name + "; url: " + url);
-        
-        let dStr = moment(). format('YYYY-MM-DD_hh:mm:SS');
+
+        let dStr = moment().format('YYYY-MM-DD_hh:mm:SS');
 
         links.push({
             name: name,
@@ -147,59 +143,15 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 //     console.log("/list - start");
 // });
 
-// router.get("/list", async function (req: Request, res: Response, next) {
-//     // res.render("index", { title: "Express LIST PAGE" });
-//     console.log("/list - start; path: " + req.path + "; params: " +
-//         JSON.stringify(req.params) + "; query: " + JSON.stringify(req.query));
-//
-//     const login = getAuth(req);
-//     if (login !== null && isAuthorized(login.user, login.auth)) {
-//         console.log("/list - authorized");
-//         const body = listLinks(login.user);
-//         res.json({list: body}); // forward to "https://se.cs.ubc.ca"
-//     } else {
-//         console.log("/list - NOT authorized");
-//         res.json({list: "listPageNOTAUTH"}); // forward to "https://se.cs.ubc.ca"
-//     }
-// });
-
-// function getAuth(req: Request): { user: string, auth: string } | null {
-//     // TODO: follow this: https://stackabuse.com/handling-authentication-in-express-js/
-//     // this is not great, but for now just use appended query args
-//     if (req.query && req.query.user && req.query.auth) {
-//         return {user: req.query.user, auth: req.query.auth};
-//     }
-//     return null;
-// }
-
-
-/**
- *
- *
- * MOVE INTO AUTH
- *
- *
- */
-
-function isAuthorized(user: string, auth: string) {
-    console.log("isAuthorized( " + user + ", " + auth + " ) - start");
-    const users = read("data/users.json");
-    for (const u of users) {
-        // console.log("\t" + JSON.stringify(u));
-        if (u.user === user && u.auth === auth) {
-            console.log("isAuthorized() - match for: " + user);
-            return true;
-        }
-    }
-    console.log("isAuthorized() - NO match for: " + user);
-    return false;
-}
-
 function createLink(name: string, url: string, user: string, auth: string) {
     console.log("createLink - start");
 }
 
-
+/**
+ * Returns all the links for a given user.
+ *
+ * @param user
+ */
 function listLinks(user: string): any {
     console.log("listLinks( " + user + " ) - start");
     const ret = [];
@@ -207,85 +159,57 @@ function listLinks(user: string): any {
     for (const link of links) {
         if (user === "admin" || link.user === user) {
             // can only see your links (except for admin, who sees all)
-            console.log("\tLINK: " + link);
+            // console.log("\tLINK: " + link);
             ret.push(link);
         }
     }
+    console.log("listLinks( " + user + " ) - returning: " + ret.length);
     return ret;
 }
 
-/**
- *
- *
- * MOVE INTO UTIL
- *
- *
- */
-
-
-const getHashedPassword = (password: any) => {
-    const sha256 = crypto.createHash('sha256');
-    const hash = sha256.update(password).digest('base64');
-    return hash;
-}
-
-
-// const users = [
-//     // This user is added to the array to avoid creating a new user on each restart
-//     {
-//         firstName: 'John',
-//         lastName: 'Doe',
-//         email: 'johndoe@email.com',
-//         // This is the SHA256 hash for value of `password`
-//         password: 'XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg='
-//     }
-// ];
-
 router.post('/register', (req, res) => {
     const {username, password, confirmPassword} = req.body;
-    // const {email, firstName, lastName, password, confirmPassword} = req.body;
 
-    const users = read('data/users.json');
-    // Check if the password and confirm password fields match
-    if (password === confirmPassword) {
-
-        // Check if user with the same email is also registered
-        if (users.find(user => user.username === username)) {
-
-            res.render('register', {
-                message: 'User name registered.',
-                messageClass: 'alert-danger'
-            });
-
-            return;
-        }
-
-        const hashedPassword = getHashedPassword(password);
-
-        // Store user into the database if you are using one
-        users.push({
-            username: username,
-            password: hashedPassword
-        });
-        write("data/users.json", users);
-
-        res.render('login', {
-            message: 'Registration successful. Please login.',
-            messageClass: 'alert-success'
-        });
-    } else {
+    // ensure passwords match
+    if (password !== confirmPassword) {
         res.render('register', {
             message: 'Password does not match.',
             messageClass: 'alert-danger'
         });
+        return;
     }
+
+    // ensure user does not already exist
+    const users = read('data/users.json');
+    if (users.find(user => user.username === username)) {
+        res.render('register', {
+            message: 'User name registered.',
+            messageClass: 'alert-danger'
+        });
+        return;
+    }
+
+    // store new user with password hash
+    const hashedPassword = getHashedPassword(password);
+    users.push({
+        username: username,
+        password: hashedPassword
+    });
+    write("data/users.json", users);
+
+    // forward to login page
+    res.render('login', {
+        message: 'Registration successful. Please login.',
+        messageClass: 'alert-success'
+    });
 });
 
 router.post('/login', (req, res) => {
     console.log('logins/ - start');
     const {username, password} = req.body;
+
     const hashedPassword = getHashedPassword(password);
-    console.log("logins: " + JSON.stringify(req.body));
+    // console.log("logins: " + JSON.stringify(req.body));
 
     const users = read("data/users.json");
     const user = users.find(u => {
@@ -297,12 +221,9 @@ router.post('/login', (req, res) => {
         // login successful
         const authToken = getHashedPassword(hashedPassword);
 
-        // Setting the auth token in cookies
+        // Setting the auth details in cookies
         res.cookie('AuthToken', authToken);
         res.cookie('AuthUser', username);
-
-        // console.log("login user: " + username);
-        // console.log("login token: " + authToken);
 
         // Redirect user to the protected page
         res.redirect('/protected');
@@ -318,5 +239,12 @@ router.post('/login', (req, res) => {
         });
     }
 });
+
+const getHashedPassword = (password: any) => {
+    const sha256 = crypto.createHash('sha256');
+    const hash = sha256.update(password).digest('base64');
+    return hash;
+}
+
 
 export default router;
