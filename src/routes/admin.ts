@@ -1,10 +1,9 @@
 import express, {NextFunction, Request, Response} from "express";
+import {getLink, isValidURL, read, write} from "../util";
+import {HOST_PREFIX, LINKS_FILE, USERS_FILE} from "../constants";
 
 const crypto = require("crypto");
 const moment = require("moment");
-
-import {getLink, isValidURL, read, write} from "../util";
-import {HOST_PREFIX, LINKS_FILE, USERS_FILE} from "../constants";
 
 const router = express.Router();
 
@@ -71,18 +70,27 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         name = name.trim();
         url = url.trim();
 
-        let threeChars = new RegExp("/(.*[a-z]){3}/i");
+        while (name.indexOf("*") >= 0) {
+            // transform * into generated chars
+            const part = crypto.randomBytes(2).toString('hex');
+            name = name.replace("*", part); // replace only does one instance at a time
+            console.log("/createLink - replaced *; name: " + name);
+        }
+
+        // const threeChars = new RegExp("/(.*[a-z]){3}/i");
         if (name.length === 0) {
-            // generate name
-            // TODO: do this better:
-            //   * ensure it at least starts with one char
-            //   * ensure the name does not already exist
-            // TODO: if name ends in /*, replace * with a generated link
-            //   * good for specified prefixes like: cs310/* -> cs310/f32d
+            // generate name (does not check for collisions)
             name = crypto.randomBytes(2).toString('hex');
-            console.log("/createLink - generated name: " + name);
-        } else if (threeChars.test(name) === false) {
-            let threeChars = new RegExp("/(.*[a-z]){3}/i");
+            name = name.toLowerCase(); // easier typing on mobile
+            if (/^[a-z]/i.test(name) === false) {
+                // ensure name starts with a letter
+                const letter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+                name = letter + name.substr(1);
+            }
+
+            console.log("/createLink - final generated name: " + name);
+        } else if (name.length<3) {
+            // let threeChars = new RegExp("/(.*[a-z]){3}/i");
             res.render('protected', {
                 message: 'Name must be > 3 letters (or blank).',
                 messageClass: 'alert-danger',

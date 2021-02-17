@@ -40,8 +40,7 @@ export function isValidURL(path: string) {
     let url;
     try {
         path = path.trim(); // remove start/trailing whitespace
-        path = path.replace(" ", ""); // remove spaces
-
+        path = path.replace(/ /g, ""); // remove all spaces
         url = new URL(path);
     } catch (err) {
         console.log("isValidURL - err NOT valid URL: " + path);
