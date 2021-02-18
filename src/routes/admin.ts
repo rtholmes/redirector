@@ -62,7 +62,7 @@ router.get("/protected", requireAuth, async function (req, res) {
         opts = (req.session as any).opts;
     }
 
-    if (opts === null) {
+    if (opts === null || opts.target !== "protected") {
         console.log("/protected - start; no session opts");
         const links = listLinks((req as any).authUser);
         opts = {
@@ -72,6 +72,7 @@ router.get("/protected", requireAuth, async function (req, res) {
         };
     }
 
+    opts.target = "protected";
     res.render("protected", opts);
 });
 
@@ -96,6 +97,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
                 prefix: PATH_PREFIX
             };
         }
+        opts.target = "protected";
         (req.session as any).opts = opts;
         res.redirect("protected");
         return;
@@ -198,13 +200,13 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
             messageClass = "alert-success";
         }
         const links = listLinks(user);
-        const opts = {
+        const opts: any = {
             message: msg,
             messageClass: messageClass,
             linkTable: links,
             prefix: PATH_PREFIX
         };
-        // res.render("protected", opts);
+        opts.target = "protected";
         (req.session as any).opts = opts;
         res.redirect("protected");
         return;
