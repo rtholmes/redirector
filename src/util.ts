@@ -22,6 +22,7 @@ export const normalizePort = (val: string) => {
 export function read(fName: string): any[] {
     let data: any = [];
     try {
+        console.log("read( " + fName + " )");
         const rawData = fs.readFileSync(fName);
         data = JSON.parse(rawData as any);
     } catch (err) {
@@ -38,6 +39,7 @@ export function read(fName: string): any[] {
  * @param data
  */
 export function write(fName: string, data: any) {
+    console.log("write( " + fName + " )");
     fs.writeFileSync(fName, JSON.stringify(data));
     return;
 }

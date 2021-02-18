@@ -35,6 +35,8 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(session({
     secret: crypto.randomBytes(4).toString("hex"),
+    resave: false,
+    saveUninitialized: false,
     cookie: {maxAge: 60 * 60 * 1000} // 60 min
 }));
 

@@ -19,6 +19,7 @@ router.get("/", async function (req, res, next) {
         console.log("/ - start; no session opts");
         opts = {};
     }
+    opts.prefix = PATH_PREFIX;
 
     res.render("home", opts);
     return;
