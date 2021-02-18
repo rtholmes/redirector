@@ -28,32 +28,35 @@
         </form>
 
 
+        <h3>Existing Links</h3>
 
-
-    <h3>Existing Links</h3>
-
-    <table style="width: 100%;">
-        <thead>
-        <tr>
-            <th>Delete</th>
-            <th>Name</th>
-            <th>URL</th>
-            <th>Owner</th>
-            <th>Created</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#each linkTable}}
+        <table style="width: 100%;">
+            <thead>
             <tr>
-                <td><a href="removeLink/{{name}}">DEL</a></td>
-                <td><a href="{{../HOST}}/{{name}}">{{name}}</a></td>
-                <td style="max-width: 20em; word-wrap: break-word;"><a href="{{url}}">{{url}}</a></td>
-                <td>{{user}}</td>
-                <td>{{created}}</td>
+                <th>Delete</th>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Owner</th>
+                <th>Created</th>
             </tr>
-        {{/each}}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {{#each linkTable}}
+                <tr>
+                    <td>
+                        <a href="removeLink/{{name}}">
+                        <img border="0" alt="delete link {{name}}" src="{{prefix}}/admin/static/trash.png"
+                             height="15px;">
+                        </a>
+                    </td>
+                    <td><a href="{{../HOST}}/{{name}}">{{name}}</a></td>
+                    <td style="max-width: 20em; word-wrap: break-word;"><a href="{{url}}">{{url}}</a></td>
+                    <td>{{user}}</td>
+                    <td>{{created}}</td>
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
     </div>
     <!--    </div>-->
     <!--</div>-->

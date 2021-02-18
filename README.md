@@ -1,8 +1,10 @@
 # Redirector
 
-This is a simple URL forwarding service configured for self hosting. Much like bit.ly, but with memorable links. 
+This is a simple URL forwarding service configured for self hosting. It can generate random short URLs (e.g., `/r32xd`), named URLs (e.g., `party/june2`), or a combination (e.g., `/prefix/r3ce2`).
 
-## create-express-typescript-app
+The goal of the project is to be relatively simple (it is backed by `.json` files instead of a database), but to allow self-registration, login, and link creation/deletion/modification. Users can only modify the links they create.
+
+## Dev
 
 This project was created using [create-express-typescript-app](https://www.npmjs.com/package/express-generator-typescript) which was invoked by calling `npx express-generator-typescript`. The docs below are from the bootstrap project.
 

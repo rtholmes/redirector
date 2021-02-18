@@ -129,7 +129,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         if (exists !== null) {
             // already exists
             res.render("protected", {
-                message: "Name is already taken.",
+                message: "Name is already taken. To modify, delete existing link and create again.",
                 messageClass: "alert-danger",
                 linkTable: links,
                 prefix: PATH_PREFIX
@@ -167,8 +167,57 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 });
 
 router.get("/removeLink/:id", async function (req: Request, res: Response, next) {
-    console.log("/removeLink - start");
-    res.json({warning: "delete not yet implemented"});
+    console.log("/removeLink - start; id: " + req.params.id);
+    const user = (req as any).authUser;
+
+    // TODO: improve deletion flow; url shows /admin/removeLink
+    // instead of going back to /admin/protected
+    // try: https://stackoverflow.com/a/37501517
+    const answer = function (msg: string, worked: boolean) {
+        let messageClass = "alert-danger";
+        if (worked === true) {
+            messageClass = "alert-success";
+        }
+        const links = listLinks(user);
+        res.render("protected", {
+            message: msg,
+            messageClass: messageClass,
+            linkTable: links,
+            prefix: PATH_PREFIX
+        });
+        return;
+    }
+    let id = req.params.id;
+    if (typeof id === "string" && id.length > 3) {
+        const links = listLinks(user);
+
+        const linkExists = links.filter(function (innerLink: any) {
+            return innerLink.name === id;
+        });
+
+        console.log("/removeLink - linkExists: " + JSON.stringify(linkExists));
+        if (linkExists === null || linkExists.length !== 1) {
+            // does not exist
+            answer("Cannot remove this link as it does not exist.", false);
+        } else if (linkExists[0].user !== user) {
+            // owned by another user
+            answer("Cannot remove this link as it was created by another user.", false);
+        } else {
+            // delete
+            console.log("/removeLink - before deletion: " + links.length);
+            const newLinks = links.filter(function (innerLink: any) {
+                return innerLink.name !== id;
+            });
+            console.log("/removeLink - after deletion: " + newLinks.length);
+            write(LINKS_FILE, newLinks);
+
+            answer("Link removed.", true);
+        }
+    } else {
+        // invalid param
+        answer("Cannot remove link.", false);
+    }
+    // res.json({warning: "delete not yet implemented"});
 });
 
 function createLink(name: string, url: string, user: string, auth: string) {
