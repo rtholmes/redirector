@@ -54,16 +54,16 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-router.get("/protected", requireAuth, async function (req, res) {
-    console.log("/protected - start;");
+router.get("/links", requireAuth, async function (req, res) {
+    console.log("/links - start;");
     let opts = null;
     if (typeof (req.session as any).opts === "object") {
-        console.log("/protected - start; has session opts");
+        console.log("/links - start; has session opts");
         opts = (req.session as any).opts;
     }
 
-    if (opts === null || opts.target !== "protected") {
-        console.log("/protected - start; no session opts");
+    if (opts === null || opts.target !== "links") {
+        console.log("/links - start; no session opts");
         const links = listLinks((req as any).authUser);
         opts = {
             linkTable: links,
@@ -72,8 +72,8 @@ router.get("/protected", requireAuth, async function (req, res) {
         };
     }
 
-    opts.target = "protected";
-    res.render("protected", opts);
+    opts.target = "links";
+    res.render("links", opts);
 });
 
 router.post("/createLink", requireAuth, async function (req, res, next) {
@@ -97,9 +97,9 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
                 prefix: PATH_PREFIX
             };
         }
-        opts.target = "protected";
+        opts.target = "links";
         (req.session as any).opts = opts;
-        res.redirect("protected");
+        res.redirect("links");
         return;
     }
 
@@ -206,9 +206,9 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
             linkTable: links,
             prefix: PATH_PREFIX
         };
-        opts.target = "protected";
+        opts.target = "links";
         (req.session as any).opts = opts;
-        res.redirect("protected");
+        res.redirect("links");
         return;
     }
 
@@ -325,8 +325,8 @@ router.post("/login", (req, res) => {
         res.cookie("AuthToken", authToken);
         res.cookie("AuthUser", username);
 
-        // Redirect user to the protected page
-        res.redirect("protected");
+        // Redirect user to the links page
+        res.redirect("links");
     } else {
         console.log("logins/ - failed; username: " + username);
         res.cookie("AuthToken", "");
