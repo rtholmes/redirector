@@ -171,7 +171,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             newName: name,
             newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}`,
             messageClass: "alert-success",
-            linkTable: links,
+            linkTable: listLinks(user),
             prefix: PATH_PREFIX
         }
         answer("", true, opts);
@@ -213,7 +213,7 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
     }
 
     if (typeof id === "string" && id.length >= 3) {
-        const links = listLinks(user);
+        const links = read(LINKS_FILE); // read _all_ links
 
         const linkExists = links.filter(function (innerLink: any) {
             return innerLink.name === id;
