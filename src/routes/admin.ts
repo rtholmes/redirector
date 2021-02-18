@@ -67,11 +67,11 @@ router.get("/links", requireAuth, async function (req, res) {
         console.log("/links - start; no session opts");
         const links = listLinks((req as any).authUser);
         opts = {
-            linkTable: links,
-            prefix: PATH_PREFIX,
-            HOST: HOST_PREFIX + PATH_PREFIX
+            linkTable: links
         };
     }
+    opts.prefix = PATH_PREFIX;
+    opts.HOST = HOST_PREFIX + PATH_PREFIX;
 
     opts.target = "links";
     res.render("links", opts);
