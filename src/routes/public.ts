@@ -25,14 +25,13 @@ router.get("/*", async function (req, res, next) {
     let name = req.path;
     console.log("/* - start; name: " + name);
     name = name.replace(/\/*$/, ""); // Remove trailing slash
-    name = name.replace(new RegExp(`^${PATH_PREFIX}`), ""); // remove the prefix
     if (name === "") {
-        console.log("/* - prefix hit; name: " + name + "; prefix: " + PATH_PREFIX);
+        console.log("/* - Name was empty (just a trailing slash)");
         // this is the root folder on a host that is serving from a dir
         sendToDefault(res, null);
         return;
     } else {
-        console.log("/* - prefix NOT hit; name: " + name);
+        console.log("/* - Name was not empty; name: " + name);
         doRedirect(name, res);
     }
 });
