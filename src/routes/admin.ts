@@ -166,14 +166,24 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     }
 });
 
-router.get("/removeLink/:id", async function (req: Request, res: Response, next) {
-    console.log("/removeLink - start; id: " + req.params.id);
+router.get("/removeLink", async function (req: Request, res: Response, next) {
+    // let id = req.params.id;
+    // console.log("/removeLink - start; param id: " + id);
+    let id = req.query.name;
+    if (typeof id === "string") {
+        id = id.trim();
+    } else {
+        id = ""; // won't match and will fail
+    }
+
+    console.log("/removeLink - start; name: " + id);
     const user = (req as any).authUser;
 
     // TODO: improve deletion flow; url shows /admin/removeLink
     // instead of going back to /admin/protected
     // try: https://stackoverflow.com/a/37501517
     const answer = function (msg: string, worked: boolean) {
+        console.log("/removeLink - answer; worked: " + worked + "; msg: " + msg);
         let messageClass = "alert-danger";
         if (worked === true) {
             messageClass = "alert-success";
@@ -187,8 +197,8 @@ router.get("/removeLink/:id", async function (req: Request, res: Response, next)
         });
         return;
     }
-    let id = req.params.id;
-    if (typeof id === "string" && id.length > 3) {
+
+    if (typeof id === "string" && id.length >= 3) {
         const links = listLinks(user);
 
         const linkExists = links.filter(function (innerLink: any) {
@@ -199,8 +209,8 @@ router.get("/removeLink/:id", async function (req: Request, res: Response, next)
         if (linkExists === null || linkExists.length !== 1) {
             // does not exist
             answer("Cannot remove this link as it does not exist.", false);
-        } else if (linkExists[0].user !== user) {
-            // owned by another user
+        } else if (user !== "admin" && linkExists[0].user !== user) {
+            // owned by another user (unless admin)
             answer("Cannot remove this link as it was created by another user.", false);
         } else {
             // delete
