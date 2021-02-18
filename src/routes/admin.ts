@@ -1,5 +1,5 @@
 import express, {NextFunction, Request, Response} from "express";
-import {getLink, isValidURL, read, write} from "../util";
+import {clearSession, getLink, isValidURL, read, write} from "../util";
 import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
 
 const crypto = require("crypto");
@@ -60,6 +60,7 @@ router.get("/links", requireAuth, async function (req, res) {
     if (typeof (req.session as any).opts === "object") {
         console.log("/links - start; has session opts");
         opts = (req.session as any).opts;
+        clearSession(req);
     }
 
     if (opts === null || opts.target !== "links") {

@@ -1,5 +1,5 @@
 import express, {Request, Response} from "express";
-import {getLink} from "../util";
+import {clearSession, getLink} from "../util";
 import {PATH_PREFIX} from "../constants";
 
 const router = express.Router();
@@ -12,9 +12,11 @@ const router = express.Router();
 router.get("/", async function (req, res, next) {
     console.log("/");
     let opts = null;
+
     if (typeof (req.session as any).opts === "object") {
         console.log("/ - start; has session opts");
         opts = (req.session as any).opts;
+        clearSession(req);
     } else {
         console.log("/ - start; no session opts");
         opts = {};
@@ -80,7 +82,11 @@ function sendToDefault(req: Request, res: Response, opts?: any) {
     opts.prefix = PATH_PREFIX;
 
     (req.session as any).opts = opts;
-    res.redirect(PATH_PREFIX);
+    if (PATH_PREFIX.trim().length < 1) {
+        res.redirect("/");
+    } else {
+        res.redirect(PATH_PREFIX);
+    }
 }
 
 

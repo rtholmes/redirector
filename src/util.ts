@@ -1,4 +1,5 @@
 import fs from "fs";
+import {Request} from "express";
 
 const URL = require("url").URL;
 
@@ -82,4 +83,12 @@ export function getLink(name: string): string | null {
     }
     console.log("getLink( " + name + " ) - NOT found");
     return null;
+}
+
+/**
+ * Clear session opts after they have been consumed
+ * @param req
+ */
+export function clearSession(req: Request) {
+    delete (req.session as any).opts;
 }
