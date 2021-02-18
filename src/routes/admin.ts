@@ -23,11 +23,11 @@ router.use((req, res, next) => {
 });
 
 router.get("/register", (req, res) => {
-    res.render("register");
+    res.render("register", {prefix: PATH_PREFIX});
 });
 
 router.get("/login", (req, res) => {
-    res.render("login");
+    res.render("login", {prefix: PATH_PREFIX});
 });
 
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -48,7 +48,8 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     if (login === false) {
         res.render("login", {
             message: "Please login to continue.",
-            messageClass: "alert-danger"
+            messageClass: "alert-danger",
+            prefix: PATH_PREFIX
         });
     }
 };
@@ -56,7 +57,8 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 router.get("/protected", requireAuth, async function (req, res) {
     const links = listLinks((req as any).authUser);
     res.render("protected", {
-        linkTable: links
+        linkTable: links,
+        prefix: PATH_PREFIX
     });
 });
 
@@ -94,7 +96,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             res.render("protected", {
                 message: "Name must be > 3 letters (or blank).",
                 messageClass: "alert-danger",
-                linkTable: links
+                linkTable: links,
+                prefix: PATH_PREFIX
             });
             return;
         }
@@ -105,7 +108,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             res.render("protected", {
                 message: "Name cannot start with 'admin'.",
                 messageClass: "alert-danger",
-                linkTable: links
+                linkTable: links,
+                prefix: PATH_PREFIX
             });
             return;
         }
@@ -115,7 +119,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             res.render("protected", {
                 message: "Link must be a valid URL.",
                 messageClass: "alert-danger",
-                linkTable: links
+                linkTable: links,
+                prefix: PATH_PREFIX
             });
             return;
         }
@@ -126,7 +131,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             res.render("protected", {
                 message: "Name is already taken.",
                 messageClass: "alert-danger",
-                linkTable: links
+                linkTable: links,
+                prefix: PATH_PREFIX
             });
             return;
         }
@@ -150,7 +156,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             newName: name,
             newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}`,
             messageClass: "alert-success",
-            linkTable: links
+            linkTable: links,
+            prefix: PATH_PREFIX
         });
 
     } else {
@@ -194,7 +201,8 @@ router.post("/register", (req, res) => {
     if (password !== confirmPassword) {
         res.render("register", {
             message: "Password does not match.",
-            messageClass: "alert-danger"
+            messageClass: "alert-danger",
+            prefix: PATH_PREFIX
         });
         return;
     }
@@ -204,7 +212,8 @@ router.post("/register", (req, res) => {
     if (users.find(user => user.username === username)) {
         res.render("register", {
             message: "User name registered.",
-            messageClass: "alert-danger"
+            messageClass: "alert-danger",
+            prefix: PATH_PREFIX
         });
         return;
     }
@@ -220,7 +229,8 @@ router.post("/register", (req, res) => {
     // forward to login page
     res.render("login", {
         message: "Registration successful. Please login.",
-        messageClass: "alert-success"
+        messageClass: "alert-success",
+        prefix: PATH_PREFIX
     });
 });
 
@@ -255,7 +265,8 @@ router.post("/login", (req, res) => {
         // login failed
         res.render("login", {
             message: "Invalid username or password.",
-            messageClass: "alert-danger"
+            messageClass: "alert-danger",
+            prefix: PATH_PREFIX
         });
     }
 });
