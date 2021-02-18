@@ -71,8 +71,9 @@ function sendToDefault(res: Response, msg: any | null) {
     // res.redirect(301, "https://se.cs.ubc.ca/");
     // res.json({link: "se.cs.ubc.ca"});
     if (msg === null) {
-        res.render("home");
+        res.render("home", {prefix: "admin/"});
     } else {
+        msg.prefix = "admin/";
         res.render("home", msg);
     }
 }
