@@ -58,8 +58,7 @@ router.get("/protected", requireAuth, async function (req, res) {
     const links = listLinks((req as any).authUser);
     res.render("protected", {
         linkTable: links,
-        PATH_PREFIX: PATH_PREFIX,
-        HOST_PREFIX: HOST_PREFIX
+        HOST: HOST_PREFIX + PATH_PREFIX
     });
 });
 
