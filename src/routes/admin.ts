@@ -99,9 +99,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             return;
         }
 
-        if (name.indexOf("admin") < 3) {
+        if (/^\/?admin\//.test(name)) {
             // admin/* is for Redirector
-            // add the 3 check just to protect against /admin
             res.render("protected", {
                 message: "Name cannot start with 'admin'.",
                 messageClass: "alert-danger",
