@@ -1,5 +1,6 @@
 import express, {Response} from "express";
 import {getLink} from "../util";
+import {PATH_PREFIX} from "../constants";
 
 const router = express.Router();
 
@@ -23,7 +24,18 @@ router.get("/", async function (req, res, next) {
 router.get("/*", async function (req, res, next) {
     let name = req.path;
     console.log("/* - start; name: " + name);
-    doRedirect(name, res);
+
+    let n = name.replace(/\//g, ""); // remove all /
+    let p = PATH_PREFIX.replace(/\//g, ""); // remove all /
+    if (n === p) {
+        console.log("/* - prefix hit; name: " + name + "; prefix: " + PATH_PREFIX);
+        // this is the root folder on a host that is serving from a dir
+        sendToDefault(res, null);
+        return;
+    } else {
+        console.log("/* - prefix NOT hit; name: " + name + " (" + n + "); prefix: " + PATH_PREFIX + " (" + p + ")");
+        doRedirect(name, res);
+    }
 });
 
 router.post("/fwd", async function (req, res, next) {
