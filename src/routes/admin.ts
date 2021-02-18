@@ -78,6 +78,28 @@ router.get("/protected", requireAuth, async function (req, res) {
 router.post("/createLink", requireAuth, async function (req, res, next) {
     let {name, url} = req.body;
     console.log("/createLink - start; name: " + name + "; url: " + url);
+    const user = (req as any).authUser;
+
+    const answer = function (msg: string, worked: boolean, opts?: any) {
+        console.log("/createLink - answer; worked: " + worked + "; msg: " + msg);
+        let messageClass = "alert-danger";
+        if (worked === true) {
+            messageClass = "alert-success";
+        }
+
+        if (typeof opts === "undefined") {
+            const links = listLinks(user);
+            opts = {
+                message: msg,
+                messageClass: messageClass,
+                linkTable: links,
+                prefix: PATH_PREFIX
+            };
+        }
+        (req.session as any).opts = opts;
+        res.redirect("protected");
+        return;
+    }
 
     const links = read(LINKS_FILE);
 
@@ -92,7 +114,6 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             console.log("/createLink - replaced *; name: " + name);
         }
 
-        // const threeChars = new RegExp("/(.*[a-z]){3}/i");
         if (name.length === 0) {
             // generate name (does not check for collisions)
             name = crypto.randomBytes(2).toString("hex");
@@ -106,46 +127,26 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             console.log("/createLink - final generated name: " + name);
         } else if (name.length < 3) {
             // let threeChars = new RegExp("/(.*[a-z]){3}/i");
-            res.render("protected", {
-                message: "Name must be > 3 letters (or blank).",
-                messageClass: "alert-danger",
-                linkTable: links,
-                prefix: PATH_PREFIX
-            });
+            answer("Name must be > 3 letters (or blank).", false);
             return;
         }
 
         if (/^\/?admin\//.test(name)) {
             // admin/* is for Redirector
-            res.render("protected", {
-                message: "Name cannot start with 'admin'.",
-                messageClass: "alert-danger",
-                linkTable: links,
-                prefix: PATH_PREFIX
-            });
+            answer("Name cannot start with 'admin'.", false);
             return;
         }
 
         if (isValidURL(url) === false) {
             // not a valid url
-            res.render("protected", {
-                message: "Link must be a valid URL.",
-                messageClass: "alert-danger",
-                linkTable: links,
-                prefix: PATH_PREFIX
-            });
+            answer("Link must be a valid URL.", false);
             return;
         }
 
         const exists = getLink(name);
         if (exists !== null) {
             // already exists
-            res.render("protected", {
-                message: "Name is already taken. To modify, delete existing link and create again.",
-                messageClass: "alert-danger",
-                linkTable: links,
-                prefix: PATH_PREFIX
-            });
+            answer("Name is already taken. To modify, delete existing link and create again.", false);
             return;
         }
 
@@ -156,13 +157,13 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 
         links.push({
             name: name,
-            user: (req as any).authUser,
+            user: user,
             created: dStr,
             url: url
         });
         write(LINKS_FILE, links);
 
-        res.render("protected", {
+        const opts = {
             message: "Link successfully created:",
             newURL: url,
             newName: name,
@@ -170,8 +171,9 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             messageClass: "alert-success",
             linkTable: links,
             prefix: PATH_PREFIX
-        });
-
+        }
+        answer("", true, opts);
+        return;
     } else {
         console.log("/createLink - outer else");
         return;
@@ -179,8 +181,6 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 });
 
 router.get("/removeLink", async function (req: Request, res: Response, next) {
-    // let id = req.params.id;
-    // console.log("/removeLink - start; param id: " + id);
     let id = req.query.name;
     if (typeof id === "string") {
         id = id.trim();
@@ -191,9 +191,6 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
     console.log("/removeLink - start; name: " + id);
     const user = (req as any).authUser;
 
-    // TODO: improve deletion flow; url shows /admin/removeLink
-    // instead of going back to /admin/protected
-    // try: https://stackoverflow.com/a/37501517
     const answer = function (msg: string, worked: boolean) {
         console.log("/removeLink - answer; worked: " + worked + "; msg: " + msg);
         let messageClass = "alert-danger";
@@ -208,7 +205,7 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
             prefix: PATH_PREFIX
         };
         // res.render("protected", opts);
-        (req as any).session.opts = opts;
+        (req.session as any).opts = opts;
         res.redirect("protected");
         return;
     }
@@ -244,10 +241,6 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
     }
     // res.json({warning: "delete not yet implemented"});
 });
-
-function createLink(name: string, url: string, user: string, auth: string) {
-    console.log("createLink - start");
-}
 
 /**
  * Returns all the links for a given user.
