@@ -24,16 +24,15 @@ router.get("/", async function (req, res, next) {
 router.get("/*", async function (req, res, next) {
     let name = req.path;
     console.log("/* - start; name: " + name);
-
-    let n = name.replace(/\//g, ""); // remove all /
-    let p = PATH_PREFIX.replace(/\//g, ""); // remove all /
-    if (n === p) {
+    name = name.replace(/\/*$/, ""); // Remove trailing slash
+    name = name.replace(new RegExp(`^${PATH_PREFIX}`), ""); // remove the prefix
+    if (name === "") {
         console.log("/* - prefix hit; name: " + name + "; prefix: " + PATH_PREFIX);
         // this is the root folder on a host that is serving from a dir
         sendToDefault(res, null);
         return;
     } else {
-        console.log("/* - prefix NOT hit; name: " + name + " (" + n + "); prefix: " + PATH_PREFIX + " (" + p + ")");
+        console.log("/* - prefix NOT hit; name: " + name);
         doRedirect(name, res);
     }
 });
@@ -71,9 +70,9 @@ function sendToDefault(res: Response, msg: any | null) {
     // res.redirect(301, "https://se.cs.ubc.ca/");
     // res.json({link: "se.cs.ubc.ca"});
     if (msg === null) {
-        res.render("home", {prefix: "admin/"});
+        res.render("home", {prefix: PATH_PREFIX});
     } else {
-        msg.prefix = "admin/";
+        msg.prefix = PATH_PREFIX;
         res.render("home", msg);
     }
 }

@@ -148,7 +148,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             message: "Link successfully created:",
             newURL: url,
             newName: name,
-            newHost: HOST_PREFIX + PATH_PREFIX + name,
+            newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}`,
             messageClass: "alert-success",
             linkTable: links
         });
