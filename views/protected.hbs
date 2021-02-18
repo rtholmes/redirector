@@ -1,10 +1,6 @@
-<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
-<!--    <a class="navbar-brand" href="#">Link View Page</a>-->
-<!--</nav>-->
+<div class="container">
 
-<div>
-    <div style="padding-top:0em; padding-bottom: 1em;">
-        <div class="center">
+    <div class="wide center">
         <h3>Create New Link</h3>
         {{#if message}}
             <div class="alert {{messageClass}}" role="alert">
@@ -30,33 +26,35 @@
             </div>
             <button type="submit" class="btn btn-primary">Create Link</button>
         </form>
-    </div>
-    </div>
-    <div style="padding-top:1em; padding-bottom: 1em;">
-        <div class="center">
-        <h3>Existing Links</h3>
-        </div>
-        <table style="width: 100%;">
-            <thead>
+
+
+
+
+    <h3>Existing Links</h3>
+
+    <table style="width: 100%;">
+        <thead>
+        <tr>
+            <th>Delete</th>
+            <th>Name</th>
+            <th>URL</th>
+            <th>Owner</th>
+            <th>Created</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each linkTable}}
             <tr>
-                <th>Delete</th>
-                <th>Name</th>
-                <th>URL</th>
-                <th>Owner</th>
-                <th>Created</th>
+                <td><a href="removeLink/{{name}}">DEL</a></td>
+                <td><a href="{{../HOST}}/{{name}}">{{name}}</a></td>
+                <td style="max-width: 20em; word-wrap: break-word;"><a href="{{url}}">{{url}}</a></td>
+                <td>{{user}}</td>
+                <td>{{created}}</td>
             </tr>
-            </thead>
-            <tbody>
-            {{#each linkTable}}
-                <tr>
-                    <td><a href="removeLink/{{name}}">DEL</a></td>
-                    <td><a href="{{../HOST}}/{{name}}">{{name}}</a></td>
-                    <td style="max-width: 20em; word-wrap: break-word;"><a href="{{url}}">{{url}}</a></td>
-                    <td>{{user}}</td>
-                    <td>{{created}}</td>
-                </tr>
-            {{/each}}
-            </tbody>
-        </table>
+        {{/each}}
+        </tbody>
+    </table>
     </div>
+    <!--    </div>-->
+    <!--</div>-->
 </div>

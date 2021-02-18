@@ -166,9 +166,10 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     }
 });
 
-// router.get("/removeLink/:id", async function (req: Request, res: Response, next) {
-//     console.log("/list - start");
-// });
+router.get("/removeLink/:id", async function (req: Request, res: Response, next) {
+    console.log("/removeLink - start");
+    res.json({warning: "delete not yet implemented"});
+});
 
 function createLink(name: string, url: string, user: string, auth: string) {
     console.log("createLink - start");

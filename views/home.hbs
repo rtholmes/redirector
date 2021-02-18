@@ -1,36 +1,31 @@
-<div class="row justify-content-md-center">
-    <div class="col-md-6">
+<div class="container">
+    <div class="row justify-content-md-center">
+        <div class="col-md-6">
 
-        <div class="center">
-            <h1 class="h3 mb-3 fw-normal">Redirector</h1>
+            <div class="center">
+                <h1 class="h3 mb-3 fw-normal">Redirector</h1>
 
-            {{#if message}}
-                <div class="alert {{messageClass}}" role="alert">
-                    {{message}}
-                </div>
-            {{/if}}
+                {{#if message}}
+                    <div class="alert {{messageClass}}" role="alert">
+                        {{message}}
+                    </div>
+                {{/if}}
 
-            <h3 class="h5 mb-3 fw-normal">Enter Name</h3>
+                <h3 class="h5 mb-3 fw-normal">Enter Name</h3>
 
-            <form method="POST" action="{{prefix}}/fwd">
+                <form method="POST" action="{{prefix}}/fwd">
 
-                <div class="form-group">
-<!--                    <label for="username">User name:</label>-->
-                    <input style="text-align: center;" name="name" type="text" class="form-control" id="name" placeholder="Enter short name">
-                </div>
+                    <div class="form-group">
+                        <input style="text-align: center;" name="name" type="text" class="form-control" id="name"
+                               placeholder="Enter short name">
+                    </div>
 
+                    <div class="center" style="padding-bottom:2em;">
+                        <button type="submit" class="btn btn-primary">Go!</button>
+                    </div>
+                </form>
 
-                <div class="center" style="padding-bottom:2em;">
-                    <button type="submit" class="btn btn-primary">Go!</button>
-                </div>
-            </form>
-
+            </div>
         </div>
     </div>
 </div>
-<!--
-<div style="margin-top: 30px;">
-    <a class="btn btn-primary btn-lg active" href="/login">Login</a>
-    <a class="btn btn-primary btn-lg active" href="/register">Register</a>
-</div>
--->
