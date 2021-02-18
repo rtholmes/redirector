@@ -156,7 +156,8 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         // must be new and valid; make it!
         console.log("/createLink - make new; name: " + name + "; url: " + url);
 
-        let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
+        // let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
+        let dStr = moment().format(); // 24h time, show UTC offset
 
         links.push({
             name: name,

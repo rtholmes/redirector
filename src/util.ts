@@ -1,4 +1,5 @@
-import fs from "fs";
+import fs from "fs-extra";
+
 import {Request} from "express";
 
 const URL = require("url").URL;
@@ -41,6 +42,9 @@ export function read(fName: string): any[] {
  */
 export function write(fName: string, data: any) {
     console.log("write( " + fName + " )");
+
+    fs.copySync(fName, fName + ".bak." + Date.now());
+
     fs.writeFileSync(fName, JSON.stringify(data));
     return;
 }
