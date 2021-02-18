@@ -80,7 +80,7 @@ function sendToDefault(req: Request, res: Response, opts?: any) {
     opts.prefix = PATH_PREFIX;
 
     (req.session as any).opts = opts;
-    res.redirect("/");
+    res.redirect(PATH_PREFIX);
 }
 
 
