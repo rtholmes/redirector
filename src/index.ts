@@ -2,6 +2,7 @@ import http from "http";
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import session from "express-session";
 
 import morgan from "morgan";
 import rfs from "rotating-file-stream";
@@ -9,10 +10,11 @@ import debugLib from "debug";
 
 import {ApplicationError} from "./types";
 import {normalizePort} from "./util";
-import {LOG_PATH, PATH_PREFIX, STATIC_PATH} from "./constants";
+import {LOG_PATH} from "./constants";
 
 import PublicRouter from "./routes/public";
 import AdminRouter from "./routes/admin";
+import * as crypto from "crypto";
 
 const exphbs = require("express-handlebars");
 const debug = debugLib("server");
@@ -29,12 +31,16 @@ app.use(morgan("combined", {stream: accessLogStream}));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(cookieParser());
-app.use("/admin/static",express.static('public'));
 
+app.use(cookieParser());
+app.use(session({
+    secret: crypto.randomBytes(4).toString("hex"),
+    cookie: {maxAge: 60 * 60 * 1000} // 60 min
+}));
+
+app.use("/admin/static", express.static('public'));
 app.use("/admin", AdminRouter);
 app.use("/", PublicRouter);
-
 
 app.engine("hbs", exphbs({
     extname: ".hbs"
