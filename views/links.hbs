@@ -16,8 +16,8 @@
 
         <form method="POST" action="createLink">
             <div class="form-group">
-                <label for="name"><b>Name</b> (e.g., guestTalk or social/gameLink). <br/>* will be generated (e.g.,
-                    foo/* -> foo/a23s). <br/>If blank, a random name will be generated.</label>
+                <label for="name"><b>Short Name</b> (e.g., social/gameLink). <br/>* will be generated (e.g.,
+                    foo/* -> foo/a23s). <br/>If blank, a random name will be generated. <br/>Final link will be: {{HOST}}{{prefix}}/<b>shortName</b>.</label>
                 <input name="name" type="text" class="form-control" id="name" placeholder="Enter Short Name">
             </div>
             <div class="form-group">
@@ -49,7 +49,7 @@
                              height="15px;">
                         </a>
                     </td>
-                    <td><a href="{{../HOST}}{{prefix}}/{{name}}">{{name}}</a></td>
+                    <td><a href="{{../HOST}}{{../prefix}}/{{name}}">{{name}}</a></td>
                     <td style="max-width: 20em; word-wrap: break-word;"><a href="{{url}}">{{url}}</a></td>
                     <td>{{user}}</td>
                     <td>{{created}}</td>
