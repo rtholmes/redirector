@@ -1,5 +1,4 @@
 <div class="container">
-
     <div class="wide center">
         <h3>Create New Link</h3>
         {{#if message}}
@@ -7,8 +6,9 @@
                 {{message}}
                 {{#if newURL}}
                     <div style="padding-top:0.5em">
-                        <a href="{{newHost}}">{{newHost}}</a> <br/> <b>&nbsp;&nbsp;-></b> <br/><a
-                            href="{{newURL}}">{{newURL}}</a>
+                        <a href="{{newHost}}">{{newHost}}</a>
+                        <br/> <b>&nbsp;&nbsp;-></b>
+                        <br/><a href="{{newURL}}">{{newURL}}</a>
                     </div>
                 {{/if}}
             </div>
@@ -48,8 +48,8 @@
                 <tr>
                     <td>
                         <a href="removeLink?name={{name}}">
-                        <img border="0" alt="delete link {{name}}" src="{{../prefix}}/admin/static/trash.png"
-                             height="15px;">
+                        <img border="0" height="15px;" alt="delete link {{name}}"
+                             src="{{../prefix}}/admin/static/trash.png">
                         </a>
                     </td>
                     <td><a href="{{../HOST}}{{../prefix}}/{{name}}">{{name}}</a></td>
@@ -61,6 +61,4 @@
             </tbody>
         </table>
     </div>
-    <!--    </div>-->
-    <!--</div>-->
 </div>

@@ -12,30 +12,22 @@
         {{/if}}
 
         <form method="POST" action="register">
-            <!--            <div class="form-group">-->
-            <!--                <label for="firstNameInput">First Name</label>-->
-            <!--                <input name="firstName" type="text" class="form-control" id="firstNameInput">-->
-            <!--            </div>-->
-
-            <!--            <div class="form-group">-->
-            <!--                <label for="lastNameInput">Last Name</label>-->
-            <!--                <input name="firstName" type="text" class="form-control" id="lastNameInput">-->
-            <!--            </div>-->
-
             <div class="form-group">
                 <label for="username">User name:</label>
-                <input name="username" type="text" class="form-control" id="username" placeholder="Enter user name">
+                <input id="username" name="username" type="text"
+                       class="form-control" placeholder="Enter user name"/>
             </div>
 
             <div class="form-group">
                 <label for="passwordInput">Password:</label>
-                <input name="password" type="password" class="form-control" id="passwordInput" placeholder="Password">
+                <input id="passwordInput" name="password" type="password"
+                       class="form-control" placeholder="Password"/>
             </div>
 
             <div class="form-group">
                 <label for="confirmPasswordInput">Confirm Password:</label>
-                <input name="confirmPassword" type="password" class="form-control" id="confirmPasswordInput"
-                       placeholder="Re-enter password">
+                <input id="confirmPasswordInput" name="confirmPassword" type="password"
+                       class="form-control" placeholder="Re-enter password"/>
             </div>
 
             {{#if message}}
