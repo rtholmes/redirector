@@ -1,6 +1,8 @@
 import express, {NextFunction, Request, Response} from "express";
+
 import {clearSession, getLink, isValidURL, read, write} from "../util";
 import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
+import {Link, User} from "types";
 
 const crypto = require("crypto");
 const moment = require("moment");
@@ -37,10 +39,10 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
         const authUser = (req as any).authUser;
         const authToken = (req as any).authToken;
 
-        const users = read(USERS_FILE);
+        const users = read(USERS_FILE) as User[];
         const user = users.find(user => user.username === authUser);
 
-        if (user !== null && getHashedPassword(user.password) === authToken) {
+        if (user && getHashedPassword(user.password) === authToken) {
             login = true;
             next();
         }
@@ -104,7 +106,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         return;
     }
 
-    const links = read(LINKS_FILE);
+    const links = read(LINKS_FILE) as Link[];
 
     if (typeof name === "string" && typeof url === "string") {
         name = name.trim();
@@ -215,7 +217,7 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
     }
 
     if (typeof id === "string" && id.length >= 3) {
-        const links = read(LINKS_FILE); // read _all_ links
+        const links = read(LINKS_FILE) as Link[]; // read _all_ links
 
         const linkExists = links.filter(function (innerLink: any) {
             return innerLink.name === id;
@@ -254,7 +256,7 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
 function listLinks(user: string): any {
     console.log("listLinks( " + user + " ) - start");
     const ret = [];
-    const links = read(LINKS_FILE);
+    const links = read(LINKS_FILE) as Link[];
     for (const link of links) {
         if (user === "admin" || link.user === user) {
             // can only see your links (except for admin, who sees all)
@@ -280,7 +282,7 @@ router.post("/register", (req, res) => {
     }
 
     // ensure user does not already exist
-    const users = read(USERS_FILE);
+    const users = read(USERS_FILE) as User[];
     if (users.find(user => user.username === username)) {
         res.render("register", {
             message: "User name registered.",
@@ -313,7 +315,7 @@ router.post("/login", (req, res) => {
     const hashedPassword = getHashedPassword(password);
     // console.log("logins: " + JSON.stringify(req.body));
 
-    const users = read(USERS_FILE);
+    const users = read(USERS_FILE) as User[];
     const user = users.find(u => {
         return u.username === username && hashedPassword === u.password
     });

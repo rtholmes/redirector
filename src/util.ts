@@ -1,11 +1,12 @@
 import fs from "fs-extra";
 
 import {Request} from "express";
+import {Link, User} from "types";
 
 const URL = require("url").URL;
 
 export const normalizePort = (val: string) => {
-    var port = parseInt(val, 10);
+    const port = parseInt(val, 10);
     if (isNaN(port)) {
         // named pipe
         return val;
@@ -21,8 +22,8 @@ export const normalizePort = (val: string) => {
  * Read JSON data file
  * @param fName
  */
-export function read(fName: string): any[] {
-    let data: any = [];
+export function read(fName: string): User[] | Link[] {
+    let data;
     try {
         console.log("read( " + fName + " )");
         const rawData = fs.readFileSync(fName);
@@ -40,7 +41,7 @@ export function read(fName: string): any[] {
  * @param fName
  * @param data
  */
-export function write(fName: string, data: any) {
+export function write(fName: string, data: User[] | Link[]) {
     console.log("write( " + fName + " )");
 
     fs.copySync(fName, fName + ".bak." + Date.now());
@@ -77,7 +78,7 @@ export function isValidURL(path: string) {
  */
 export function getLink(name: string): string | null {
     console.log("getLink( " + name + " ) - start");
-    const links = read("data/links.json");
+    const links = read("data/links.json") as Link[];
     for (const link of links) {
         // console.log("getLink( " + name + " ) - name: " + link.name);
         if (link.name === name) {
