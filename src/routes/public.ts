@@ -5,9 +5,7 @@ import {PATH_PREFIX} from "../constants";
 const router = express.Router();
 
 /**
- * The default route could render a homepage, but we would prefer
- * to send it to a default target, to reduce registration burden
- * on admins.
+ * The default home page provides a simple view for entering a short link.
  */
 router.get("/", async function (req, res, next) {
     console.log("/");
@@ -27,67 +25,56 @@ router.get("/", async function (req, res, next) {
     return;
 });
 
-
 /**
  * Main forwarding route.
  */
 router.get("/*", async function (req, res, next) {
     let name = req.path;
     console.log("/* - start; name: " + name);
-    name = name.replace(/\/*$/, ""); // Remove trailing slash
-    if (name === "") {
-        console.log("/* - Name was empty (just a trailing slash)");
-        // this is the root folder on a host that is serving from a dir
-        sendToDefault(req, res);
-        return;
-    } else {
-        console.log("/* - Name was not empty; name: " + name);
-        doRedirect(name, req, res);
-    }
+    sendToRedirect(name, req, res);
 });
 
+/**
+ * Route used by the submit button on the homepage.
+ */
 router.post("/fwd", async function (req, res, next) {
     let name = req.body.name;
     console.log("/fwd - start; name: " + name);
-    doRedirect(name, req, res);
+    sendToRedirect(name, req, res);
 });
 
-function doRedirect(name: string, req: Request, res: Response) {
-    if (name.startsWith("/")) {
-        name = name.substr(1); // trim first slash, if it exists
+function cleanName(name: string): string {
+    if (typeof name === "string") {
+        name = name.replace(/\/*$/, ""); // Remove trailing slash
+        if (name.startsWith("/")) {
+            name = name.substr(1); // trim first slash, if it exists
+        }
     }
+    return name;
+}
+
+function sendToRedirect(name: string, req: Request, res: Response) {
+    name = cleanName(name);
     const url = getLink(name);
 
     if (url !== null) {
-        // using a meta tag is hacky, just do a proper redirect
-        // const redirect = "<meta http-equiv="refresh" content="0; URL="" + url + "" />";
-        // res.status(301);
-        // res.send(redirect);
-
+        // prefer redirect over a meta hack
+        console.log("sendToRedirect - name: " + name);
         res.redirect(301, url);
     } else {
-        sendToDefault(req, res, {
+        let opts = {
             message: "Name not found: " + name,
-            messageClass: "alert-danger"
-        });
+            messageClass: "alert-danger",
+            prefix: PATH_PREFIX
+        };
+        (req.session as any).opts = opts;
+        console.log("sendToRedirect - prefix: " + PATH_PREFIX);
+        if (PATH_PREFIX.trim().length < 1) {
+            res.redirect("/");
+        } else {
+            res.redirect(PATH_PREFIX);
+        }
     }
 }
-
-function sendToDefault(req: Request, res: Response, opts?: any) {
-    console.log("sendToDefault");
-
-    if (typeof opts === "undefined" || opts === null) {
-        opts = {};
-    }
-    opts.prefix = PATH_PREFIX;
-
-    (req.session as any).opts = opts;
-    if (PATH_PREFIX.trim().length < 1) {
-        res.redirect("/");
-    } else {
-        res.redirect(PATH_PREFIX);
-    }
-}
-
 
 export default router;
