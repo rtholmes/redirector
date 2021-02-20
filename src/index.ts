@@ -3,6 +3,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import * as crypto from "crypto";
 
 import morgan from "morgan";
 import rfs from "rotating-file-stream";
@@ -14,10 +15,9 @@ import {LOG_PATH} from "./constants";
 
 import PublicRouter from "./routes/public";
 import AdminRouter from "./routes/admin";
-import * as crypto from "crypto";
 
-const exphbs = require("express-handlebars");
 const debug = debugLib("server");
+const exphbs = require("express-handlebars");
 
 const accessLogStream = rfs("access.log", {
     interval: "1d", // rotate daily
@@ -67,7 +67,7 @@ server.on("error", (error: ApplicationError) => {
         throw error;
     }
 
-    var bind = typeof port === "string"
+    const bind = typeof port === "string"
         ? "Pipe " + port
         : "Port " + port;
 

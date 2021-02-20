@@ -9,7 +9,40 @@ const moment = require("moment");
 
 const router = express.Router();
 
-// should be first
+/**
+ * Check injected auth and user to make sure they correspond to valid
+ * users and passwords. This is checked on every admin request.
+ *
+ * If successful, the request is passed to the next handler. If not,
+ * the user is forwarded to the login page.
+ *
+ */
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    console.log("requireAuth - start");
+    let login = false;
+    if (typeof (req as any).authUser === "string" && typeof (req as any).authToken === "string") {
+        const authUser = (req as any).authUser;
+        const authToken = (req as any).authToken;
+
+        const users = read(USERS_FILE) as User[];
+        const user = users.find(user => user.username === authUser);
+
+        if (user && getHashedPassword(user.password) === authToken) {
+            // login successful
+            login = true;
+            next();
+        }
+    }
+
+    if (login === false) {
+        goPage(req, res, "login", "Please login to continue.", false);
+        // NOTE: next() is _NOT_ called here to stop request chain.
+    }
+};
+
+/**
+ * Should be first in the admin router; injects auth info into all subsequent calls
+ */
 router.use((req, res, next) => {
     // Get auth token from the cookies
     const authToken = req.cookies["AuthToken"];
@@ -24,37 +57,19 @@ router.use((req, res, next) => {
     next();
 });
 
+/**
+ * Display the register page.
+ */
 router.get("/register", (req, res) => {
     res.render("register", {prefix: PATH_PREFIX});
 });
 
+/**
+ * Display the login page.
+ */
 router.get("/login", (req, res) => {
     res.render("login", {prefix: PATH_PREFIX});
 });
-
-const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    console.log("requireAuth - start");
-    let login = false;
-    if (typeof (req as any).authUser === "string" && typeof (req as any).authToken === "string") {
-        const authUser = (req as any).authUser;
-        const authToken = (req as any).authToken;
-
-        const users = read(USERS_FILE) as User[];
-        const user = users.find(user => user.username === authUser);
-
-        if (user && getHashedPassword(user.password) === authToken) {
-            login = true;
-            next();
-        }
-    }
-    if (login === false) {
-        res.render("login", {
-            message: "Please login to continue.",
-            messageClass: "alert-danger",
-            prefix: PATH_PREFIX
-        });
-    }
-};
 
 router.get("/links", requireAuth, async function (req, res) {
     console.log("/links - start;");
@@ -85,26 +100,34 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     const user = (req as any).authUser;
 
     const answer = function (msg: string, worked: boolean, opts?: any) {
-        console.log("/createLink - answer; worked: " + worked + "; msg: " + msg);
-        let messageClass = "alert-danger";
-        if (worked === true) {
-            messageClass = "alert-success";
-        }
-
+        console.log("/createLink - answer; msg: " + name + "; worked: " + worked);
         if (typeof opts === "undefined") {
-            const links = listLinks(user);
-            opts = {
-                message: msg,
-                messageClass: messageClass,
-                linkTable: links,
-                prefix: PATH_PREFIX
-            };
+            opts = {};
         }
-        opts.target = "links";
-        (req.session as any).opts = opts;
-        res.redirect("links");
-        return;
+        opts.linkTable = listLinks(user);
+        goPage(req, res, "links", msg, worked, opts);
     }
+    // const answer = function (msg: string, worked: boolean, opts?: any) {
+    //     console.log("/createLink - answer; worked: " + worked + "; msg: " + msg);
+    //     let messageClass = "alert-danger";
+    //     if (worked === true) {
+    //         messageClass = "alert-success";
+    //     }
+    //
+    //     if (typeof opts === "undefined") {
+    //         const links = listLinks(user);
+    //         opts = {
+    //             message: msg,
+    //             messageClass: messageClass,
+    //             linkTable: links,
+    //             prefix: PATH_PREFIX
+    //         };
+    //     }
+    //     opts.target = "links";
+    //     (req.session as any).opts = opts;
+    //     res.redirect("links");
+    //     return;
+    // }
 
     const links = read(LINKS_FILE) as Link[];
 
@@ -133,60 +156,56 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         } else if (name.length < 3) {
             // let threeChars = new RegExp("/(.*[a-z]){3}/i");
             answer("Name must be > 3 letters (or blank).", false);
-            return;
         }
-
-        if (/^\/?admin\//.test(name)) {
-            // admin/* is for Redirector
-            answer("Name cannot start with 'admin'.", false);
-            return;
-        }
-
-        if (isValidURL(url) === false) {
-            // not a valid url
-            answer("Link must be a valid URL.", false);
-            return;
-        }
-
-        const exists = getLink(name);
-        if (exists !== null) {
-            // already exists
-            answer("Name is already taken. To modify, delete existing link and create again.", false);
-            return;
-        }
-
-        // must be new and valid; make it!
-        console.log("/createLink - make new; name: " + name + "; url: " + url);
-
-        // let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
-        let dStr = moment().format(); // 24h time, show UTC offset
-
-        links.push({
-            name: name,
-            user: user,
-            created: dStr,
-            url: url
-        });
-        write(LINKS_FILE, links);
-
-        const opts = {
-            message: "Link successfully created:",
-            newURL: url,
-            newName: name,
-            newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}`,
-            messageClass: "alert-success",
-            linkTable: listLinks(user),
-            prefix: PATH_PREFIX
-        }
-        answer("", true, opts);
-        return;
-    } else {
-        console.log("/createLink - outer else");
         return;
     }
+
+    if (/^\/?admin\//.test(name)) {
+        // admin/* is for Redirector
+        answer("Name cannot start with 'admin'.", false);
+        return;
+    }
+
+    if (isValidURL(url) === false) {
+        // not a valid url
+        answer("Link must be a valid URL.", false);
+        return;
+    }
+
+    const exists = getLink(name);
+    if (exists !== null) {
+        // already exists
+        answer("Name is already taken. To modify, delete existing link and create again.", false);
+        return;
+    }
+
+// must be new and valid; make it!
+    console.log("/createLink - make new; name: " + name + "; url: " + url);
+
+// let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
+    let dStr = moment().format(); // 24h time, show UTC offset
+
+    links.push({
+        name: name,
+        user: user,
+        created: dStr,
+        url: url
+    });
+    write(LINKS_FILE, links);
+
+    const opts = {
+        newURL: url,
+        newName: name,
+        newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}` //,
+        // messageClass: "alert-success",
+        // linkTable: listLinks(user),
+        // prefix: PATH_PREFIX
+    }
+    answer("Link successfully created:", true, opts);
+    return;
 });
 
-router.get("/removeLink", async function (req: Request, res: Response, next) {
+router.get("/removeLink", requireAuth, async function (req: Request, res: Response, next) {
     let id = req.query.name;
     if (typeof id === "string") {
         id = id.trim();
@@ -197,23 +216,33 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
     console.log("/removeLink - start; name: " + id);
     const user = (req as any).authUser;
 
-    const answer = function (msg: string, worked: boolean) {
-        console.log("/removeLink - answer; worked: " + worked + "; msg: " + msg);
-        let messageClass = "alert-danger";
-        if (worked === true) {
-            messageClass = "alert-success";
+    // const answer = function (msg: string, worked: boolean) {
+    //     console.log("/removeLink - answer; worked: " + worked + "; msg: " + msg);
+    //
+    //     let messageClass = "alert-danger";
+    //     if (worked === true) {
+    //         messageClass = "alert-success";
+    //     }
+    //     const links = listLinks(user);
+    //     const opts: any = {
+    //         message: msg,
+    //         messageClass: messageClass,
+    //         linkTable: links,
+    //         prefix: PATH_PREFIX
+    //     };
+    //     opts.target = "links";
+    //     (req.session as any).opts = opts;
+    //     res.redirect("links");
+    //     return;
+    // }
+
+    const answer = function (msg: string, worked: boolean, opts?: any) {
+        console.log("/removeLink - answer; msg: " + msg + "; worked: " + worked);
+        if (typeof opts === "undefined") {
+            opts = {};
         }
-        const links = listLinks(user);
-        const opts: any = {
-            message: msg,
-            messageClass: messageClass,
-            linkTable: links,
-            prefix: PATH_PREFIX
-        };
-        opts.target = "links";
-        (req.session as any).opts = opts;
-        res.redirect("links");
-        return;
+        opts.linkTable = listLinks(user);
+        goPage(req, res, "links", msg, worked, opts);
     }
 
     if (typeof id === "string" && id.length >= 3) {
@@ -245,7 +274,98 @@ router.get("/removeLink", async function (req: Request, res: Response, next) {
         // invalid param
         answer("Cannot remove link.", false);
     }
-    // res.json({warning: "delete not yet implemented"});
+});
+
+router.post("/register", (req, res) => {
+    const {username, password, confirmPassword} = req.body;
+
+    const answer = function (msg: string) {
+        console.log("/register - answer; msg: " + msg);
+        goPage(req, res, "redirect", msg, false);
+
+        //
+        // const opts: any = {
+        //     message: msg,
+        //     messageClass: "alert-danger",
+        //     prefix: PATH_PREFIX
+        // };
+        //
+        // (req.session as any).opts = opts;
+        // res.redirect("register");
+        // return;
+    }
+
+    // ensure passwords match
+    if (password !== confirmPassword) {
+        answer("Password does not match.");
+        return;
+    }
+
+    // ensure user does not already exist
+    const users = read(USERS_FILE) as User[];
+    if (users.find(user => user.username === username)) {
+        answer("User name registered.");
+        return;
+    }
+
+    // store new user with password hash
+    const hashedPassword = getHashedPassword(password);
+    users.push({
+        username: username,
+        password: hashedPassword
+    });
+    write(USERS_FILE, users);
+
+    // forward to login page
+    // res.render("login", {
+    //     message: "Registration successful. Please login.",
+    //     messageClass: "alert-success",
+    //     prefix: PATH_PREFIX
+    // });
+    goPage(req, res, "login", "Registration successful. Please login.", true);
+});
+
+/**
+ * Login route. Does not require `requireAuth` because the user is not
+ * authenticated yet. If successful, forward to the protected resource,
+ * if not, forward back to the login page.
+ */
+router.post("/login", (req, res) => {
+    console.log("logins/ - start");
+    const {username, password} = req.body;
+
+    const hashedPassword = getHashedPassword(password);
+
+    const users = read(USERS_FILE) as User[];
+    const user = users.find(u => {
+        return u.username === username && hashedPassword === u.password
+    });
+
+    if (user) {
+        console.log("logins/ - successful; username: " + username);
+
+        // Setting the auth cookie details
+        const authToken = getHashedPassword(hashedPassword);
+        res.cookie("AuthToken", authToken);
+        res.cookie("AuthUser", username);
+
+        // Redirect user to the links page
+        res.redirect("links");
+    } else {
+        console.log("logins/ - failed; username: " + username);
+
+        // Clear the auth cookie details
+        res.cookie("AuthToken", "");
+        res.cookie("AuthUser", "");
+
+        // login failed
+        // res.render("login", {
+        //     message: "Invalid username or password.",
+        //     messageClass: "alert-danger",
+        //     prefix: PATH_PREFIX
+        // });
+        goPage(req, res, "login", "Invalid username or password.", false);
+    }
 });
 
 /**
@@ -259,8 +379,7 @@ function listLinks(user: string): any {
     const links = read(LINKS_FILE) as Link[];
     for (const link of links) {
         if (user === "admin" || link.user === user) {
-            // can only see your links (except for admin, who sees all)
-            // console.log("\tLINK: " + link);
+            // a user can only see their links (except for admin, who sees all)
             ret.push(link);
         }
     }
@@ -268,87 +387,46 @@ function listLinks(user: string): any {
     return ret;
 }
 
-router.post("/register", (req, res) => {
-    const {username, password, confirmPassword} = req.body;
-
-    // ensure passwords match
-    if (password !== confirmPassword) {
-        res.render("register", {
-            message: "Password does not match.",
-            messageClass: "alert-danger",
-            prefix: PATH_PREFIX
-        });
-        return;
-    }
-
-    // ensure user does not already exist
-    const users = read(USERS_FILE) as User[];
-    if (users.find(user => user.username === username)) {
-        res.render("register", {
-            message: "User name registered.",
-            messageClass: "alert-danger",
-            prefix: PATH_PREFIX
-        });
-        return;
-    }
-
-    // store new user with password hash
-    const hashedPassword = getHashedPassword(password);
-    users.push({
-        username: username,
-        password: hashedPassword
-    });
-    write(USERS_FILE, users);
-
-    // forward to login page
-    res.render("login", {
-        message: "Registration successful. Please login.",
-        messageClass: "alert-success",
-        prefix: PATH_PREFIX
-    });
-});
-
-router.post("/login", (req, res) => {
-    console.log("logins/ - start");
-    const {username, password} = req.body;
-
-    const hashedPassword = getHashedPassword(password);
-    // console.log("logins: " + JSON.stringify(req.body));
-
-    const users = read(USERS_FILE) as User[];
-    const user = users.find(u => {
-        return u.username === username && hashedPassword === u.password
-    });
-
-    if (user) {
-        console.log("logins/ - successful; username: " + username);
-        // login successful
-        const authToken = getHashedPassword(hashedPassword);
-
-        // Setting the auth details in cookies
-        res.cookie("AuthToken", authToken);
-        res.cookie("AuthUser", username);
-
-        // Redirect user to the links page
-        res.redirect("links");
-    } else {
-        console.log("logins/ - failed; username: " + username);
-        res.cookie("AuthToken", "");
-        res.cookie("AuthUser", "");
-
-        // login failed
-        res.render("login", {
-            message: "Invalid username or password.",
-            messageClass: "alert-danger",
-            prefix: PATH_PREFIX
-        });
-    }
-});
-
+/**
+ * Passwords are stored hashed on disk.
+ *
+ * Tokens are just hashes of the password hash (should probably
+ * actually be a hash of the password hash combined with a secret
+ * that is regenerated on each server launch).
+ *
+ * @param password
+ */
 const getHashedPassword = (password: any) => {
     const sha256 = crypto.createHash("sha256");
     const hash = sha256.update(password).digest("base64");
     return hash;
+}
+
+
+function goPage(req: Request, res: Response, target: string, msg: string, worked: boolean, opts?: any) {
+    console.log("/goPage - answer; worked: " + worked + "; msg: " + msg);
+    let messageClass = "alert-danger";
+    if (worked === true) {
+        messageClass = "alert-success";
+    }
+
+    if (typeof opts === "undefined") {
+        opts = {};
+    }
+
+    // set if provided
+    if (msg !== null) {
+        opts.message = msg;
+        opts.messageClass = messageClass;
+    }
+
+    // set for all
+    opts.prefix = PATH_PREFIX;
+
+    opts.target = target;
+    (req.session as any).opts = opts;
+    res.redirect(target);
+    return;
 }
 
 export default router;
