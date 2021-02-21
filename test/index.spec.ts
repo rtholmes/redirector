@@ -1,20 +1,20 @@
 import chai, {expect} from "chai";
 import chaiHttp from "chai-http";
 
-// import "chai-match";
 import "mocha";
 
 import {app} from "../src/index";
-import {configureForTesting, LINKS_FILE, USERS_FILE} from "../src/constants";
+import {configureForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
 
 chai.use(chaiHttp);
 
-describe("Redirector tests", () => {
+describe("Default path Redirector tests", () => {
 
     before(function () {
         // runs once before the first test in this block
         console.log("updating env");
         configureForTesting();
+        console.log("pathPrefix: " + PATH_PREFIX);
         console.log("users file: " + USERS_FILE);
         console.log("links file: " + LINKS_FILE);
     });
@@ -23,7 +23,7 @@ describe("Redirector tests", () => {
 
         it("succeeds with valid values", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/register')
+            const res = await agent.post(PATH_PREFIX + '/admin/register')
                 .send({username: 'test', password: 'testPW', confirmPassword: 'testPW'});
 
             expect(res).to.have.status(200);
@@ -33,7 +33,7 @@ describe("Redirector tests", () => {
 
         it("fails with non-matching passwords", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/register')
+            const res = await agent.post(PATH_PREFIX + '/admin/register')
                 .send({username: 'foo', password: 'bar', confirmPassword: 'barX'});
 
             expect(res).to.have.status(200);
@@ -43,7 +43,7 @@ describe("Redirector tests", () => {
 
         it("fails with already existing user", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/register')
+            const res = await agent.post(PATH_PREFIX + '/admin/register')
                 .send({username: 'test', password: 'testPW', confirmPassword: 'testPW'});
 
             expect(res).to.have.status(200);
@@ -56,7 +56,7 @@ describe("Redirector tests", () => {
 
         it("fails with bad user/pass", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/login')
+            const res = await agent.post(PATH_PREFIX + '/admin/login')
                 .send({username: 'foo', password: 'bar'});
 
             expect(res).to.have.status(200);
@@ -66,7 +66,7 @@ describe("Redirector tests", () => {
 
         it("succeeds with good credentials", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/login')
+            const res = await agent.post(PATH_PREFIX +'/admin/login')
                 .send({username: 'test', password: 'testPW'});
 
             console.log(res.header);
@@ -79,7 +79,7 @@ describe("Redirector tests", () => {
 
         it("fails when user not logged in", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 // .set('Cookie', 'cookieName=cookieValue;otherName=otherValue')
                 .send({name: 'test', password: 'https://se.cs.ubc.ca/'});
 
@@ -92,7 +92,7 @@ describe("Redirector tests", () => {
 
         it("fails when user incorrectly logged in", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=BADTOKEN')
                 .send({name: 'test', password: 'https://se.cs.ubc.ca/'});
 
@@ -105,7 +105,7 @@ describe("Redirector tests", () => {
 
         it("fails when name is too short", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                 .send({name: 't', url: 'https://se.cs.ubc.ca/'});
 
@@ -116,7 +116,7 @@ describe("Redirector tests", () => {
 
         it("fails when name starts with admin", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                 .send({name: 'admin/test', url: 'https://se.cs.ubc.ca/'});
 
@@ -127,7 +127,7 @@ describe("Redirector tests", () => {
 
         it("fails when url is not valid", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                 .send({name: 'test/**', url: 'google.ca'}); // need http/https
 
@@ -138,7 +138,7 @@ describe("Redirector tests", () => {
 
         it("succeeds with valid values", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                 .send({name: 'test', url: 'https://se.cs.ubc.ca/'});
 
@@ -150,7 +150,7 @@ describe("Redirector tests", () => {
 
         it("succeeds with valid wildcard values", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                 .send({name: 'test/deep/*/*/deeperthings/*', url: 'https://se.cs.ubc.ca/'});
 
@@ -163,7 +163,7 @@ describe("Redirector tests", () => {
 
         it("fails when link already exists", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/admin/createLink')
+            const res = await agent.post(PATH_PREFIX +'/admin/createLink')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                 .send({name: 'test', url: 'https://se.cs.ubc.ca/ALTERNATE'});
 
@@ -177,7 +177,7 @@ describe("Redirector tests", () => {
 
         it("successfully redirects with /test", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.get('/test').send().redirects(0);
+            const res = await agent.get(PATH_PREFIX +'/test').send().redirects(0);
 
             console.log(res.header);
             expect(res).to.have.status(301);
@@ -186,7 +186,7 @@ describe("Redirector tests", () => {
 
         it("successfully redirects with fwd/", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/fwd')
+            const res = await agent.post(PATH_PREFIX +'/fwd')
                 .send({name: 'test'})
                 .redirects(0);
 
@@ -206,7 +206,7 @@ describe("Redirector tests", () => {
 
         it("fail to redirect with invalid /", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.get('/NOTTHERE').send();
+            const res = await agent.get(PATH_PREFIX +'/NOTTHERE').send();
 
             expect(res).to.have.status(200);
             expect(res.text).to.match(/alert alert-danger/);
@@ -215,7 +215,7 @@ describe("Redirector tests", () => {
 
         it("fails to redirect with invalid fwd/", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.post('/fwd')
+            const res = await agent.post(PATH_PREFIX +'/fwd')
                 .send({name: 'NOTTHERE'});
 
             expect(res).to.have.status(200);
@@ -229,7 +229,7 @@ describe("Redirector tests", () => {
 
         it("fails without credentials", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.get('/admin/removeLink?name=test')
+            const res = await agent.get(PATH_PREFIX +'/admin/removeLink?name=test')
                 .set('Cookie', 'AuthUser=test;AuthToken=BADAUTH')
 
             console.log(res.text);
@@ -241,7 +241,7 @@ describe("Redirector tests", () => {
 
         it("fails when name does not exist", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
-            const res = await agent.get('/admin/removeLink?name=DOESNOTEXIST')
+            const res = await agent.get(PATH_PREFIX +'/admin/removeLink?name=DOESNOTEXIST')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
 
             // console.log(res.text);
@@ -254,7 +254,7 @@ describe("Redirector tests", () => {
         it("succeeds when link exists", async () => {
             const agent = chai.request.agent(app); // agent supports sessions
             // TODO: look at number of links before
-            const res = await agent.get('/admin/removeLink?name=test')
+            const res = await agent.get(PATH_PREFIX +'/admin/removeLink?name=test')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
 
             console.log(res.text);
