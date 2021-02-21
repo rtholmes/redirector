@@ -2,6 +2,7 @@ import fs from "fs-extra";
 
 import {Request} from "express";
 import {Link, User} from "types";
+import {LINKS_FILE} from "./constants";
 
 const URL = require("url").URL;
 
@@ -23,16 +24,16 @@ export const normalizePort = (val: string) => {
  * @param fName
  */
 export function read(fName: string): User[] | Link[] {
-    let data;
-    try {
-        console.log("read( " + fName + " )");
-        const rawData = fs.readFileSync(fName);
-        data = JSON.parse(rawData as any);
-    } catch (err) {
-        console.log("read( " + fName + " ) - ERROR: " + err.message);
-        console.log("read( " + fName + " ) - creating new file");
-        data = [];
+    console.log("read( " + fName + " )");
+
+    if (!fs.existsSync(fName)) {
+        console.log("read( " + fName + " ) - does not exist, creating new file");
+        fs.writeFileSync(fName, "[]"); // create empty file
     }
+
+    const rawData = fs.readFileSync(fName);
+    let data = JSON.parse(rawData as any);
+
     return data;
 }
 
@@ -78,7 +79,7 @@ export function isValidURL(path: string) {
  */
 export function getLink(name: string): string | null {
     console.log("getLink( " + name + " ) - start");
-    const links = read("data/links.json") as Link[];
+    const links = read(LINKS_FILE) as Link[];
     for (const link of links) {
         // console.log("getLink( " + name + " ) - name: " + link.name);
         if (link.name === name) {

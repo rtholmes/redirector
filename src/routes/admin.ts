@@ -20,18 +20,31 @@ const router = express.Router();
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     console.log("requireAuth - start");
     let login = false;
-    if (typeof (req as any).authUser === "string" && typeof (req as any).authToken === "string") {
-        const authUser = (req as any).authUser;
-        const authToken = (req as any).authToken;
+
+    const authUser = req.cookies.AuthUser;
+    const authToken = req.cookies.AuthToken;
+    if (typeof authUser === "string" && typeof authToken === "string") {
+        // console.log("requireAuth - cookies: " + JSON.stringify(req.cookies));
 
         const users = read(USERS_FILE) as User[];
         const user = users.find(user => user.username === authUser);
 
+        // for debugging
+        // if (user) {
+        //     console.log("comparing hpw: " + getHashedPassword(user.password) + "; token: " + authToken);
+        // }
+
         if (user && getHashedPassword(user.password) === authToken) {
             // login successful
+            console.log("requireAuth - success; user: " + authUser);
             login = true;
             next();
+        } else {
+            console.log("requireAuth - nope");
         }
+    } else {
+        // cookies missing
+        console.log("requireAuth - cookies missing; authUser: " + authUser + "; authToken: " + authToken);
     }
 
     if (login === false) {
@@ -61,27 +74,33 @@ router.use((req, res, next) => {
  * Display the register page.
  */
 router.get("/register", (req, res) => {
-    res.render("register", {prefix: PATH_PREFIX});
+    let opts = (req.session as any).opts || {};
+    opts.prefix = PATH_PREFIX;
+    console.log("GET /register; opts: " + JSON.stringify(opts));
+    res.render("register", opts);
 });
 
 /**
  * Display the login page.
  */
 router.get("/login", (req, res) => {
-    res.render("login", {prefix: PATH_PREFIX});
+    let opts = (req.session as any).opts || {};
+    opts.prefix = PATH_PREFIX;
+    console.log("GET /login; opts: " + JSON.stringify(opts));
+    res.render("login", opts);
 });
 
 router.get("/links", requireAuth, async function (req, res) {
-    console.log("/links - start;");
+    console.log("GET /links - start;");
     let opts = null;
     if (typeof (req.session as any).opts === "object") {
-        console.log("/links - start; has session opts");
+        console.log("GET /links - start; has session opts");
         opts = (req.session as any).opts;
         clearSession(req);
     }
 
     if (opts === null || opts.target !== "links") {
-        console.log("/links - start; no session opts");
+        console.log("GET /links - start; no session opts");
         const links = listLinks((req as any).authUser);
         opts = {
             linkTable: links
@@ -96,67 +115,54 @@ router.get("/links", requireAuth, async function (req, res) {
 
 router.post("/createLink", requireAuth, async function (req, res, next) {
     let {name, url} = req.body;
-    console.log("/createLink - start; name: " + name + "; url: " + url);
+    console.log("POST /createLink - start; name: " + name + "; url: " + url);
+
+    if (typeof name !== "string" || typeof url !== "string") {
+        console.log("POST /createLink - name: " + name + "; url: " + url);
+        goPage(req, res, "links", "Required params missing.", false);
+        return;
+    }
+
     const user = (req as any).authUser;
 
     const answer = function (msg: string, worked: boolean, opts?: any) {
-        console.log("/createLink - answer; msg: " + name + "; worked: " + worked);
+        console.log("POST /createLink - answer; msg: " + msg + "; worked: " + worked);
         if (typeof opts === "undefined") {
             opts = {};
         }
+        console.log("POST /createLink - answer; opts: " + JSON.stringify(opts)); // before linktable for size
         opts.linkTable = listLinks(user);
         goPage(req, res, "links", msg, worked, opts);
     }
-    // const answer = function (msg: string, worked: boolean, opts?: any) {
-    //     console.log("/createLink - answer; worked: " + worked + "; msg: " + msg);
-    //     let messageClass = "alert-danger";
-    //     if (worked === true) {
-    //         messageClass = "alert-success";
-    //     }
-    //
-    //     if (typeof opts === "undefined") {
-    //         const links = listLinks(user);
-    //         opts = {
-    //             message: msg,
-    //             messageClass: messageClass,
-    //             linkTable: links,
-    //             prefix: PATH_PREFIX
-    //         };
-    //     }
-    //     opts.target = "links";
-    //     (req.session as any).opts = opts;
-    //     res.redirect("links");
-    //     return;
-    // }
 
     const links = read(LINKS_FILE) as Link[];
 
-    if (typeof name === "string" && typeof url === "string") {
-        name = name.trim();
-        url = url.trim();
+    name = name.trim();
+    url = url.trim();
 
-        while (name.indexOf("*") >= 0) {
-            // transform * into generated chars
-            const part = crypto.randomBytes(2).toString("hex");
-            name = name.replace("*", part); // replace only does one instance at a time
-            console.log("/createLink - replaced *; name: " + name);
+    console.log("POST /createLink - verifying; name: " + name + "; url: " + url);
+
+    while (name.indexOf("*") >= 0) {
+        // transform * into generated chars
+        const part = crypto.randomBytes(2).toString("hex");
+        name = name.replace("*", part); // replace only does one instance at a time
+        console.log("POST /createLink - replaced *; name: " + name);
+    }
+
+    if (name.length === 0) {
+        // generate name (does not check for collisions)
+        name = crypto.randomBytes(2).toString("hex");
+        name = name.toLowerCase(); // easier typing on mobile
+        if (/^[a-z]/i.test(name) === false) {
+            // ensure name starts with a letter
+            const letter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+            name = letter + name.substr(1);
         }
 
-        if (name.length === 0) {
-            // generate name (does not check for collisions)
-            name = crypto.randomBytes(2).toString("hex");
-            name = name.toLowerCase(); // easier typing on mobile
-            if (/^[a-z]/i.test(name) === false) {
-                // ensure name starts with a letter
-                const letter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
-                name = letter + name.substr(1);
-            }
-
-            console.log("/createLink - final generated name: " + name);
-        } else if (name.length < 3) {
-            // let threeChars = new RegExp("/(.*[a-z]){3}/i");
-            answer("Name must be > 3 letters (or blank).", false);
-        }
+        console.log("POST /createLink - final generated name: " + name);
+    } else if (name.length < 3) {
+        // let threeChars = new RegExp("/(.*[a-z]){3}/i");
+        answer("Name must be > 3 letters (or blank).", false);
         return;
     }
 
@@ -180,7 +186,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     }
 
 // must be new and valid; make it!
-    console.log("/createLink - make new; name: " + name + "; url: " + url);
+    console.log("POST /createLink - make new; name: " + name + "; url: " + url);
 
 // let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
     let dStr = moment().format(); // 24h time, show UTC offset
@@ -281,23 +287,18 @@ router.post("/register", (req, res) => {
 
     const answer = function (msg: string) {
         console.log("/register - answer; msg: " + msg);
-        goPage(req, res, "redirect", msg, false);
+        goPage(req, res, "register", msg, false);
+    }
 
-        //
-        // const opts: any = {
-        //     message: msg,
-        //     messageClass: "alert-danger",
-        //     prefix: PATH_PREFIX
-        // };
-        //
-        // (req.session as any).opts = opts;
-        // res.redirect("register");
-        // return;
+    if (typeof username === "undefined" || typeof password === "undefined" || typeof confirmPassword === "undefined") {
+        console.log("POST /register - username: " + username + "; password: " + password + "; confirm: " + confirmPassword);
+        answer("Required params missing.");
+        return;
     }
 
     // ensure passwords match
     if (password !== confirmPassword) {
-        answer("Password does not match.");
+        answer("Passwords do not match.");
         return;
     }
 
@@ -331,8 +332,14 @@ router.post("/register", (req, res) => {
  * if not, forward back to the login page.
  */
 router.post("/login", (req, res) => {
-    console.log("logins/ - start");
     const {username, password} = req.body;
+    console.log("logins/ - start; username: " + username);
+
+    if (typeof username === "undefined" || typeof password === "undefined") {
+        console.log("POST /login - username: " + username + "; password: " + password);
+        goPage(req, res, "login", "Required params missing.", false);
+        return;
+    }
 
     const hashedPassword = getHashedPassword(password);
 

@@ -2,10 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "*": ["src/*"]
+      "*": [
+        "src/*"
+      ]
     },
     "target": "es2017",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -15,10 +19,12 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
     "outDir": "./build"
   },
-  "include": ["./src"],
+  "include": [
+    "./src",
+    "./test"
+  ],
   "exclude": [
     "./node_modules",
     "./build"

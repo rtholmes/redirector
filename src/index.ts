@@ -24,7 +24,7 @@ const accessLogStream = rfs("access.log", {
     path: LOG_PATH
 });
 
-const app = express();
+export const app = express();
 
 // Apache commons style logging
 app.use(morgan("combined", {stream: accessLogStream}));
@@ -60,7 +60,7 @@ app.set("view engine", "hbs");
 const port = normalizePort(process.env.PORT || "3000");
 app.set("port", port);
 
-const server = http.createServer(app);
+export const server = http.createServer(app);
 
 server.on("error", (error: ApplicationError) => {
     if (error.syscall !== "listen") {
