@@ -103,7 +103,7 @@ router.get("/logout", (req, res) => {
     opts.prefix = PATH_PREFIX;
 
     console.log("GET /logout; opts: " + JSON.stringify(opts));
-    res.redirect("/");
+    res.redirect(PATH_PREFIX + "/");
 });
 
 export function setLoggedOut(opts: any, req: Request) {
