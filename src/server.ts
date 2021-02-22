@@ -11,7 +11,7 @@ import debugLib from "debug";
 
 import {ApplicationError} from "./types";
 import {normalizePort} from "./util";
-import {LOG_PATH} from "./constants";
+import {LOG_PATH, PATH_PREFIX} from "./constants";
 
 import PublicRouter from "./routes/public";
 import AdminRouter from "./routes/admin";
@@ -20,6 +20,7 @@ const debug = debugLib("server");
 const exphbs = require("express-handlebars");
 
 export default class Server {
+
     private accessLogStream = rfs("access.log", {
         interval: "1d", // rotate daily
         path: LOG_PATH
@@ -29,6 +30,8 @@ export default class Server {
     private server: http.Server;
 
     constructor() {
+        console.log("server::<init> - start; prefix: " + PATH_PREFIX);
+
         // Apache commons style logging
         this.app.use(morgan("combined", {
             stream: this.accessLogStream
@@ -66,6 +69,7 @@ export default class Server {
         this.app.set("port", port);
 
         this.server = http.createServer(this.app);
+        console.log("server::<init> - done");
     }
 
     public async start(): Promise<void> {
@@ -114,7 +118,7 @@ export default class Server {
         // return (async () => {
         console.log("Starting application server");
         that.server.listen(port);
-        console.log(`Server is up @ http://localhost:${port}`);
+        console.log(`Server is up @ http://localhost:${port}${PATH_PREFIX}`);
         // })();
     }
 

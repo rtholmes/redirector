@@ -185,10 +185,10 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
         return;
     }
 
-// must be new and valid; make it!
+    // must be new and valid; make it!
     console.log("POST /createLink - make new; name: " + name + "; url: " + url);
 
-// let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
+    // let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
     let dStr = moment().format(); // 24h time, show UTC offset
 
     links.push({
@@ -202,10 +202,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     const opts = {
         newURL: url,
         newName: name,
-        newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}` //,
-        // messageClass: "alert-success",
-        // linkTable: listLinks(user),
-        // prefix: PATH_PREFIX
+        newHost: `${HOST_PREFIX}${PATH_PREFIX}/${name}`
     }
     answer("Link successfully created:", true, opts);
     return;
@@ -221,26 +218,6 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
 
     console.log("/removeLink - start; name: " + id);
     const user = (req as any).authUser;
-
-    // const answer = function (msg: string, worked: boolean) {
-    //     console.log("/removeLink - answer; worked: " + worked + "; msg: " + msg);
-    //
-    //     let messageClass = "alert-danger";
-    //     if (worked === true) {
-    //         messageClass = "alert-success";
-    //     }
-    //     const links = listLinks(user);
-    //     const opts: any = {
-    //         message: msg,
-    //         messageClass: messageClass,
-    //         linkTable: links,
-    //         prefix: PATH_PREFIX
-    //     };
-    //     opts.target = "links";
-    //     (req.session as any).opts = opts;
-    //     res.redirect("links");
-    //     return;
-    // }
 
     const answer = function (msg: string, worked: boolean, opts?: any) {
         console.log("/removeLink - answer; msg: " + msg + "; worked: " + worked);
@@ -318,11 +295,6 @@ router.post("/register", (req, res) => {
     write(USERS_FILE, users);
 
     // forward to login page
-    // res.render("login", {
-    //     message: "Registration successful. Please login.",
-    //     messageClass: "alert-success",
-    //     prefix: PATH_PREFIX
-    // });
     goPage(req, res, "login", "Registration successful. Please login.", true);
 });
 
@@ -366,11 +338,6 @@ router.post("/login", (req, res) => {
         res.cookie("AuthUser", "");
 
         // login failed
-        // res.render("login", {
-        //     message: "Invalid username or password.",
-        //     messageClass: "alert-danger",
-        //     prefix: PATH_PREFIX
-        // });
         goPage(req, res, "login", "Invalid username or password.", false);
     }
 });

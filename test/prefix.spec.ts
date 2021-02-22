@@ -7,19 +7,27 @@ import Server from "../src/server";
 
 chai.use(chaiHttp);
 
-describe.skip("Alternate path Redirector tests", () => {
-    const server = new Server();
-    const app = server.getApp();
+describe.skip("PREFIX path Redirector tests", () => {
+
+    console.log("declaring test vars");
+    let server: Server;
+    let app: Express.Application;
+    console.log("test vars declared");
 
     before(function () {
         // runs once before the first test in this block
-        console.log("updating env");
+        console.log("before - updating env");
         configureForTesting();
         configurePrefixForTesting();
         console.log("pathPrefix: " + PATH_PREFIX);
         console.log("users file: " + USERS_FILE);
         console.log("links file: " + LINKS_FILE);
+        console.log("before - env updated");
+        console.log("before - starting server");
+        server = new Server();
+        app = server.getApp();
         server.start();
+        console.log("before - server started");
     });
 
     after(async function () {
@@ -90,7 +98,7 @@ describe.skip("Alternate path Redirector tests", () => {
                 // .set('Cookie', 'cookieName=cookieValue;otherName=otherValue')
                 .send({name: 'test', password: 'https://se.cs.ubc.ca/'});
 
-            console.log(res.text);
+            // console.log(res.text);
 
             expect(res).to.have.status(200);
             expect(res.text).to.match(/alert alert-danger/);
@@ -103,7 +111,7 @@ describe.skip("Alternate path Redirector tests", () => {
                 .set('Cookie', 'AuthUser=test;AuthToken=BADTOKEN')
                 .send({name: 'test', password: 'https://se.cs.ubc.ca/'});
 
-            console.log(res.text);
+            // console.log(res.text);
 
             expect(res).to.have.status(200);
             expect(res.text).to.match(/alert alert-danger/);
@@ -239,7 +247,7 @@ describe.skip("Alternate path Redirector tests", () => {
             const res = await agent.get(PATH_PREFIX + '/admin/removeLink?name=test')
                 .set('Cookie', 'AuthUser=test;AuthToken=BADAUTH')
 
-            console.log(res.text);
+            // console.log(res.text);
 
             expect(res).to.have.status(200);
             expect(res.text).to.match(/alert alert-danger/);
@@ -264,7 +272,7 @@ describe.skip("Alternate path Redirector tests", () => {
             const res = await agent.get(PATH_PREFIX + '/admin/removeLink?name=test')
                 .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
 
-            console.log(res.text);
+            // console.log(res.text);
 
             expect(res).to.have.status(200);
             expect(res.text).to.match(/alert alert-success/);
