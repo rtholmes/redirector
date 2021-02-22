@@ -1,4 +1,4 @@
-import Server from "./Server";
+import Server from "./server";
 
 console.log("index - starting server");
 const server = new Server();
