@@ -4,6 +4,7 @@ import chaiHttp from "chai-http";
 
 import {configureForTesting, configurePrefixForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
 import Server from "../src/server";
+import {read} from "../src/util";
 
 chai.use(chaiHttp);
 
@@ -44,12 +45,15 @@ const runTests = function (title: string, noPrefix: boolean) {
 
             it("succeeds with valid values", async () => {
                 const agent = chai.request.agent(app); // agent supports sessions
+                const startUserCount = read(USERS_FILE).length;
                 const res = await agent.post('/admin/register')
                     .send({username: 'test', password: 'testPW', confirmPassword: 'testPW'});
 
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-success/);
                 expect(res.text).to.match(/Registration successful. Please login./);
+                const endUserCount = read(USERS_FILE).length;
+                expect(endUserCount).to.equal(startUserCount + 1);
             });
 
             it("fails with non-matching passwords", async () => {
@@ -159,6 +163,7 @@ const runTests = function (title: string, noPrefix: boolean) {
 
             it("succeeds with valid values", async () => {
                 const agent = chai.request.agent(app); // agent supports sessions
+                const startLinkCount = read(LINKS_FILE).length;
                 const res = await agent.post('/admin/createLink')
                     .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({name: 'test', url: 'https://se.cs.ubc.ca/'});
@@ -167,6 +172,8 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(res.text).to.match(/alert alert-success/);
                 expect(res.text).to.match(/Link successfully created./);
                 expect(res.text).to.match(/http:\/\/localhost:3000\/test/);
+                const endLinkCount = read(LINKS_FILE).length;
+                expect(endLinkCount).to.equal(startLinkCount + 1);
             });
 
             it("succeeds with valid wildcard values", async () => {
@@ -275,16 +282,15 @@ const runTests = function (title: string, noPrefix: boolean) {
 
             it("succeeds when link exists", async () => {
                 const agent = chai.request.agent(app); // agent supports sessions
-                // TODO: look at number of links before
+                const startLinkCount = read(LINKS_FILE).length;
                 const res = await agent.get('/admin/removeLink?name=test')
                     .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
-
-                // console.log(res.text);
 
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-success/);
                 expect(res.text).to.match(/Link removed./);
-                // TODO: look at number of links after is one fewer
+                const endLinkCount = read(LINKS_FILE).length;
+                expect(endLinkCount).to.equal(startLinkCount - 1);
             });
 
             it.skip("fails when link is not yours to delete", async () => {
