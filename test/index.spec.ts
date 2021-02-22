@@ -96,7 +96,7 @@ const runTests = function (title: string, noPrefix: boolean) {
 
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-danger/);
-                expect(res.text).to.match(/Invalid username or password./);
+                expect(res.text).to.match(/Invalid credentials./);
             });
 
             it("fails when required params missing", async () => {

@@ -337,7 +337,7 @@ router.post("/login", (req, res) => {
         res.cookie("AuthUser", "");
 
         // login failed
-        goPage(req, res, "login", "Invalid username or password.", false);
+        goPage(req, res, "login", "Invalid credentials.", false);
     }
 });
 
