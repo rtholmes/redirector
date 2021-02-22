@@ -230,8 +230,6 @@ const runTests = function (title: string, noPrefix: boolean) {
                 const agent = chai.request.agent(app); // agent supports sessions
                 const res = await agent.get('/NOTTHERE').send();
 
-                console.log(res.text);
-
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-danger/);
                 expect(res.text).to.match(/Name not found: NOTTHERE/);
@@ -298,7 +296,8 @@ const runTests = function (title: string, noPrefix: boolean) {
     });
 }
 
+// run the tests with no prefix (e.g., http://localhost/)
 runTests("Default", true);
+// run the tests with a prefix (e.g., http://localhost/prefix)
 runTests("Prefix", false);
 
-export {};
