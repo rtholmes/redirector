@@ -57,7 +57,7 @@ function cleanName(name: string): string {
 
 function sendToRedirect(name: string, req: Request, res: Response) {
     name = cleanName(name);
-    console.log("sendToRedirect - start; name: " + name);
+    console.log("sendToRedirect - start; name: " + name + "; prefix: " + PATH_PREFIX);
 
     const url = getLink(name);
     if (url !== null) {
@@ -72,11 +72,11 @@ function sendToRedirect(name: string, req: Request, res: Response) {
         };
         (req.session as any).opts = opts;
         console.log("sendToRedirect - prefix: " + PATH_PREFIX + "; opts: " + JSON.stringify(opts));
-        if (PATH_PREFIX.trim().length < 1) {
+        // if (PATH_PREFIX.trim().length < 1) {
             res.redirect("/");
-        } else {
-            res.redirect(PATH_PREFIX);
-        }
+        // } else {
+        //     res.redirect(PATH_PREFIX);
+        // }
     }
 }
 
