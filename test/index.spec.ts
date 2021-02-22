@@ -114,9 +114,23 @@ const runTests = function (title: string, noPrefix: boolean) {
                 const res = await agent.post('/admin/login')
                     .send({username: 'test', password: 'testPW'});
 
-                console.log(res.header);
+                // console.log(res.header);
+                // console.log(res.text);
 
                 expect(res).to.have.status(200);
+                expect(res.text).to.match(/Create New Link/); // should be on links page
+            });
+
+            it("succeeds at logging out", async () => {
+                const agent = chai.request.agent(app); // agent supports sessions
+                const res = await agent.get('/admin/logout')
+                    .send({username: 'test', password: 'testPW'});
+
+                console.log(res.header);
+                console.log(res.text);
+
+                expect(res).to.have.status(200);
+                expect(res.text).to.match(/Go!/); // should be on /
             });
         });
 

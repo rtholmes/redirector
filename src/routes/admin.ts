@@ -10,6 +10,38 @@ const moment = require("moment");
 const router = express.Router();
 
 /**
+ * Actually perform login check.
+ */
+function isLoggedIn(req: Request): boolean {
+    let login = false;
+
+    const authUser = req.cookies.AuthUser;
+    const authToken = req.cookies.AuthToken;
+
+    if (typeof authUser === "string" && typeof authToken === "string") {
+        const users = read(USERS_FILE) as User[];
+        const user = users.find(user => user.username === authUser);
+
+        // for debugging
+        // if (user) {
+        //     console.log("isLoggedIn comparing hpw: " + getHashedPassword(user.password) + "; token: " + authToken);
+        // }
+
+        if (user && getHashedPassword(user.password) === authToken) {
+            // login successful
+            console.log("isLoggedIn - success; user: " + authUser);
+            login = true;
+        } else {
+            console.log("isLoggedIn - nope");
+        }
+    } else {
+        // cookies missing
+        console.log("isLoggedIn - cookies missing; authUser: " + authUser + "; authToken: " + authToken);
+    }
+    return login;
+}
+
+/**
  * Check injected auth and user to make sure they correspond to valid
  * users and passwords. This is checked on every admin request.
  *
@@ -19,35 +51,13 @@ const router = express.Router();
  */
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     console.log("requireAuth - start");
-    let login = false;
+    let login = isLoggedIn(req);
 
-    const authUser = req.cookies.AuthUser;
-    const authToken = req.cookies.AuthToken;
-    if (typeof authUser === "string" && typeof authToken === "string") {
-        // console.log("requireAuth - cookies: " + JSON.stringify(req.cookies));
-
-        const users = read(USERS_FILE) as User[];
-        const user = users.find(user => user.username === authUser);
-
-        // for debugging
-        // if (user) {
-        //     console.log("comparing hpw: " + getHashedPassword(user.password) + "; token: " + authToken);
-        // }
-
-        if (user && getHashedPassword(user.password) === authToken) {
-            // login successful
-            console.log("requireAuth - success; user: " + authUser);
-            login = true;
-            next();
-        } else {
-            console.log("requireAuth - nope");
-        }
+    if (login === true) {
+        // login successful
+        login = true;
+        next();
     } else {
-        // cookies missing
-        console.log("requireAuth - cookies missing; authUser: " + authUser + "; authToken: " + authToken);
-    }
-
-    if (login === false) {
         goPage(req, res, "login", "Please login to continue.", false);
         // NOTE: next() is _NOT_ called here to stop request chain.
     }
@@ -76,9 +86,34 @@ router.use((req, res, next) => {
 router.get("/register", (req, res) => {
     let opts = (req.session as any).opts || {};
     opts.prefix = PATH_PREFIX;
+    setLoggedOut(opts, req);
     console.log("GET /register; opts: " + JSON.stringify(opts));
     res.render("register", opts);
 });
+
+router.get("/logout", (req, res) => {
+    console.log("GET /logout - start");
+    let opts: any = {};
+
+    res.cookie("AuthToken", "");
+    res.cookie("AuthUser", "");
+
+    clearSession(req);
+    opts.isLoggedOut = true;
+    opts.prefix = PATH_PREFIX;
+
+    console.log("GET /logout; opts: " + JSON.stringify(opts));
+    res.redirect("/");
+});
+
+export function setLoggedOut(opts: any, req: Request) {
+    const loggedIn = isLoggedIn(req);
+    if (loggedIn === false) {
+        opts.isLoggedOut = true;
+    } else {
+        opts.isLoggedOut = false;
+    }
+}
 
 /**
  * Display the login page.
@@ -86,6 +121,7 @@ router.get("/register", (req, res) => {
 router.get("/login", (req, res) => {
     let opts = (req.session as any).opts || {};
     opts.prefix = PATH_PREFIX;
+    setLoggedOut(opts, req);
     console.log("GET /login; opts: " + JSON.stringify(opts));
     res.render("login", opts);
 });
@@ -93,6 +129,7 @@ router.get("/login", (req, res) => {
 router.get("/links", requireAuth, async function (req, res) {
     console.log("GET /links - start;");
     let opts = null;
+
     if (typeof (req.session as any).opts === "object") {
         console.log("GET /links - start; has session opts");
         opts = (req.session as any).opts;
@@ -108,6 +145,7 @@ router.get("/links", requireAuth, async function (req, res) {
     }
     opts.prefix = PATH_PREFIX;
     opts.HOST = HOST_PREFIX + PATH_PREFIX;
+    setLoggedOut(opts, req);
 
     opts.target = "links";
     res.render("links", opts);
@@ -395,6 +433,7 @@ function goPage(req: Request, res: Response, target: string, msg: string, worked
 
     // set for all
     opts.prefix = PATH_PREFIX;
+    setLoggedOut(opts, req);
 
     opts.target = target;
     (req.session as any).opts = opts;

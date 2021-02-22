@@ -35,7 +35,7 @@
         .footer {
             font-size: 50%;
             display: flex;
-            justify-content: flex-end;
+            padding-left: 0.5em;
             padding-right: 0.5em;
             padding-bottom: 0.5em;
             align-items: center;
@@ -62,8 +62,10 @@
 
 <!-- header -->
 <div class="header center">
-    <img class="mb-4" alt="redirector logo" height="64"
-         src="{{prefix}}/admin/static/icon.png"/>
+    <a href="{{prefix}}/">
+        <img class="mb-4" alt="redirector logo" height="64"
+             src="{{prefix}}/admin/static/icon.png"/>
+    </a>
 </div>
 
 <!-- page content -->
@@ -71,11 +73,28 @@
 
 <!-- footer -->
 <div class="footer">
-    <a href="http://github.com/rtholmes/redirector">
-        <img border="0" height="20px;" alt="redirector logo"
-             src="{{prefix}}/admin/static/github.png"/>
-    </a>
-    <a href="http://github.com/rtholmes/redirector">rtholmes/redirector</a>
+    <div style="display: flex; flex: 1; align-items: center;">
+        {{#if isLoggedOut}}
+            <a href="{{prefix}}/admin/login">
+                <img border="0" height="15px;" alt="login icon"
+                     src="{{prefix}}/admin/static/key.png"/>
+            </a>
+            <a href="{{prefix}}/admin/login">&nbsp;login</a>
+        {{else}}
+            <a href="{{prefix}}/admin/links">
+                <img border="0" height="15px;" alt="links icon"
+                     src="{{prefix}}/admin/static/key.png"/>
+            </a>
+            <a href="{{prefix}}/admin/links">&nbsp;links</a>
+        {{/if}}
+    </div>
+    <div style="display: flex; flex: 1; justify-content: flex-end; align-items: center;">
+        <a href="http://github.com/rtholmes/redirector">
+            <img border="0" height="20px;" alt="redirector logo"
+                 src="{{prefix}}/admin/static/github.png"/>
+        </a>
+        <a href="http://github.com/rtholmes/redirector">rtholmes/redirector</a>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
