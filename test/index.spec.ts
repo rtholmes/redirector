@@ -56,6 +56,16 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(endUserCount).to.equal(startUserCount + 1);
             });
 
+            it("fails when required params missing", async () => {
+                const agent = chai.request.agent(app); // agent supports sessions
+                const res = await agent.post('/admin/register')
+                    .send({wrongkey: 'foo', password: 'bar', confirmPassword: 'bar'});
+
+                expect(res).to.have.status(200);
+                expect(res.text).to.match(/alert alert-danger/);
+                expect(res.text).to.match(/Required params missing./);
+            });
+
             it("fails with non-matching passwords", async () => {
                 const agent = chai.request.agent(app); // agent supports sessions
                 const res = await agent.post('/admin/register')
@@ -87,6 +97,16 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-danger/);
                 expect(res.text).to.match(/Invalid username or password./);
+            });
+
+            it("fails when required params missing", async () => {
+                const agent = chai.request.agent(app); // agent supports sessions
+                const res = await agent.post('/admin/login')
+                    .send({badkey: 'test', password: 'testPW'});
+
+                expect(res).to.have.status(200);
+                expect(res.text).to.match(/alert alert-danger/);
+                expect(res.text).to.match(/Required params missing./);
             });
 
             it("succeeds with good credentials", async () => {
@@ -126,6 +146,17 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-danger/);
                 expect(res.text).to.match(/Please login to continue./);
+            });
+
+            it("fails when required params are not present", async () => {
+                const agent = chai.request.agent(app); // agent supports sessions
+                const res = await agent.post('/admin/createLink')
+                    .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
+                    .send({wrongkey: 't', url: 'https://se.cs.ubc.ca/'});
+
+                expect(res).to.have.status(200);
+                expect(res.text).to.match(/alert alert-danger/);
+                expect(res.text).to.match(/Required params missing./);
             });
 
             it("fails when name is too short", async () => {
@@ -278,6 +309,16 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(res).to.have.status(200);
                 expect(res.text).to.match(/alert alert-danger/);
                 expect(res.text).to.match(/Cannot remove this link as it does not exist./);
+            });
+
+            it("fails without required params", async () => {
+                const agent = chai.request.agent(app); // agent supports sessions
+                const res = await agent.get('/admin/removeLink?wrongkey=test')
+                    .set('Cookie', 'AuthUser=test;AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
+
+                expect(res).to.have.status(200);
+                expect(res.text).to.match(/alert alert-danger/);
+                expect(res.text).to.match(/Required params missing./);
             });
 
             it("succeeds when link exists", async () => {

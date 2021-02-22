@@ -72,6 +72,7 @@ export default class Server {
         console.log("server::<init> - done");
     }
 
+    /* istanbul ignore next */
     public async start(): Promise<void> {
         const that = this;
         let port = that.app.get("port");

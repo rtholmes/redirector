@@ -33,7 +33,9 @@
     "chai-match": "^1.1.1",
     "mocha": "^8.3.0",
     "nodemon": "^1.19.0",
+    "nyc": "^15.1.0",
     "rimraf": "^2.6.3",
+    "source-map-support": "^0.5.19",
     "ts-node": "^9.1.1",
     "typescript": "^3.4.5"
   },
@@ -42,9 +44,27 @@
     "start-prod": "pm2 start ./build/index.js",
     "stop-prod": "pm2 stop",
     "build": "rimraf -fR && tsc",
-    "test": "mocha -r ts-node/register test/**/*.spec.ts --exit"
+    "test": "mocha -r ts-node/register test/**/*.spec.ts --exit",
+    "cover": "nyc yarn run test"
   },
   "engines": {
     "node": ">= 10.15.3"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
   }
 }

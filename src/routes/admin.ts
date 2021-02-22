@@ -210,12 +210,14 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
 
 router.get("/removeLink", requireAuth, async function (req: Request, res: Response, next) {
     let id = req.query.name;
-    if (typeof id === "string") {
-        id = id.trim();
-    } else {
-        id = ""; // won't match and will fail
+
+    if (typeof id !== "string") {
+        console.log("GET /removeLink - id: " + id);
+        goPage(req, res, "links", "Required params missing.", false);
+        return;
     }
 
+    id = id.trim();
     console.log("/removeLink - start; name: " + id);
     const user = (req as any).authUser;
 
@@ -228,7 +230,7 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
         goPage(req, res, "links", msg, worked, opts);
     }
 
-    if (typeof id === "string" && id.length >= 3) {
+    if (id.length >= 3) {
         const links = read(LINKS_FILE) as Link[]; // read _all_ links
 
         const linkExists = links.filter(function (innerLink: any) {
@@ -253,9 +255,6 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
 
             answer("Link removed.", true);
         }
-    } else {
-        // invalid param
-        answer("Cannot remove link.", false);
     }
 });
 
