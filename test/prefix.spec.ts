@@ -2,13 +2,12 @@ import "mocha";
 import chai, {expect} from "chai";
 import chaiHttp from "chai-http";
 
-import {configureForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
+import {configureForTesting, configurePrefixForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
 import Server from "../src/server";
 
 chai.use(chaiHttp);
 
-describe("Default path Redirector tests", () => {
-
+describe.skip("Alternate path Redirector tests", () => {
     const server = new Server();
     const app = server.getApp();
 
@@ -16,6 +15,7 @@ describe("Default path Redirector tests", () => {
         // runs once before the first test in this block
         console.log("updating env");
         configureForTesting();
+        configurePrefixForTesting();
         console.log("pathPrefix: " + PATH_PREFIX);
         console.log("users file: " + USERS_FILE);
         console.log("links file: " + LINKS_FILE);
