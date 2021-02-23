@@ -280,7 +280,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             it("successfully redirects to / with invalid fwd name", async () => {
                 const agent = chai.request.agent(app); // agent supports sessions
                 const res = await agent.post('/fwd')
-                    .send({name: 'DOESNOTEXIST'})
+                    .send({name: 'DOESNOTEXIST'});
 
                 console.log(res.header);
                 expect(res).to.have.status(200);

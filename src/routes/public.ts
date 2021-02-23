@@ -75,7 +75,12 @@ function sendToRedirect(name: string, req: Request, res: Response) {
         setLoggedOut(opts, req);
         (req.session as any).opts = opts;
         console.log("sendToRedirect - prefix: " + PATH_PREFIX + "; opts: " + JSON.stringify(opts));
-        res.render("home", opts);
+        if (PATH_PREFIX.trim().length < 1) {
+            res.redirect("/");
+        } else {
+            res.redirect(PATH_PREFIX);
+        }
+        // res.render("home", opts);
     }
 }
 
