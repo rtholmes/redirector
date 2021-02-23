@@ -10,21 +10,21 @@ const router = express.Router();
  * The default home page provides a simple view for entering a short link.
  */
 router.get("/", async function (req, res, next) {
-    console.log("/ - start");
+    console.log("GET / - start");
     let opts = null;
 
     if (typeof (req.session as any).opts === "object") {
-        console.log("/ - start; has session opts");
+        console.log("GET / - start; has session opts");
         opts = (req.session as any).opts;
         clearSession(req);
     } else {
-        console.log("/ - start; no session opts");
+        console.log("GET / - start; no session opts");
         opts = {};
     }
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts,req);
 
-    console.log("rendering with opts: " + JSON.stringify(opts));
+    console.log("GET / - rendering with opts: " + JSON.stringify(opts));
     res.render("home", opts);
     return;
 });
@@ -34,7 +34,7 @@ router.get("/", async function (req, res, next) {
  */
 router.get("/*", async function (req, res, next) {
     let name = req.path;
-    console.log("/* - start; name: " + name);
+    console.log("GET /* - start; name: " + name);
     sendToRedirect(name, req, res);
 });
 
@@ -43,7 +43,7 @@ router.get("/*", async function (req, res, next) {
  */
 router.post("/fwd", async function (req, res, next) {
     let name = req.body.name;
-    console.log("/fwd - start; name: " + name);
+    console.log("POST /fwd - start; name: " + name);
     sendToRedirect(name, req, res);
 });
 

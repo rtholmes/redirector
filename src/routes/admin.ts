@@ -55,9 +55,11 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 
     if (login === true) {
         // login successful
+        console.log("requireAuth - logged in");
         login = true;
         next();
     } else {
+        console.log("requireAuth - NOT logged in");
         goPage(req, res, "login", "Please login to continue.", false);
         // NOTE: next() is _NOT_ called here to stop request chain.
     }
@@ -256,11 +258,11 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
     }
 
     id = id.trim();
-    console.log("/removeLink - start; name: " + id);
+    console.log("GET /removeLink - start; name: " + id);
     const user = (req as any).authUser;
 
     const answer = function (msg: string, worked: boolean, opts?: any) {
-        console.log("/removeLink - answer; msg: " + msg + "; worked: " + worked);
+        console.log("GET /removeLink - answer; msg: " + msg + "; worked: " + worked);
         if (typeof opts === "undefined") {
             opts = {};
         }
@@ -275,7 +277,7 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
             return innerLink.name === id;
         });
 
-        console.log("/removeLink - linkExists: " + JSON.stringify(linkExists));
+        console.log("GET /removeLink - linkExists: " + JSON.stringify(linkExists));
         if (linkExists === null || linkExists.length !== 1) {
             // does not exist
             answer("Cannot remove this link as it does not exist.", false);
@@ -284,11 +286,11 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
             answer("Cannot remove this link as it was created by another user.", false);
         } else {
             // delete
-            console.log("/removeLink - before deletion: " + links.length);
+            console.log("GET /removeLink - before deletion: " + links.length);
             const newLinks = links.filter(function (innerLink: any) {
                 return innerLink.name !== id;
             });
-            console.log("/removeLink - after deletion: " + newLinks.length);
+            console.log("GET /removeLink - after deletion: " + newLinks.length);
             write(LINKS_FILE, newLinks);
 
             answer("Link removed.", true);
@@ -300,7 +302,7 @@ router.post("/register", (req, res) => {
     const {username, password, confirmPassword} = req.body;
 
     const answer = function (msg: string) {
-        console.log("/register - answer; msg: " + msg);
+        console.log("POST /register - answer; msg: " + msg);
         goPage(req, res, "register", msg, false);
     }
 
@@ -342,7 +344,7 @@ router.post("/register", (req, res) => {
  */
 router.post("/login", (req, res) => {
     const {username, password} = req.body;
-    console.log("logins/ - start; username: " + username);
+    console.log("POST login/ - start; username: " + username);
 
     if (typeof username === "undefined" || typeof password === "undefined") {
         console.log("POST /login - username: " + username + "; password: " + password);
@@ -358,7 +360,7 @@ router.post("/login", (req, res) => {
     });
 
     if (user) {
-        console.log("logins/ - successful; username: " + username);
+        console.log("POST login/ - successful; username: " + username);
 
         // Setting the auth cookie details
         const authToken = getHashedPassword(hashedPassword);
@@ -368,7 +370,7 @@ router.post("/login", (req, res) => {
         // Redirect user to the links page
         res.redirect("links");
     } else {
-        console.log("logins/ - failed; username: " + username);
+        console.log("POST login/ - failed; username: " + username);
 
         // Clear the auth cookie details
         res.cookie("AuthToken", "");
@@ -415,7 +417,7 @@ const getHashedPassword = (password: any) => {
 
 
 function goPage(req: Request, res: Response, target: string, msg: string, worked: boolean, opts?: any) {
-    console.log("/goPage - answer; worked: " + worked + "; msg: " + msg);
+    console.log("goPage - answer; worked: " + worked + "; msg: " + msg);
     let messageClass = "alert-danger";
     if (worked === true) {
         messageClass = "alert-success";
