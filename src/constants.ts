@@ -1,14 +1,18 @@
 import path from "path";
 
 require('dotenv').config();
-
-export const HOST_PREFIX = process.env.HOST_PREFIX as string;
 // not const-for testing
+
+export let HOST_PREFIX = process.env.HOST_PREFIX as string;
+
 export let PATH_PREFIX = process.env.PATH_PREFIX as string;
+PATH_PREFIX = PATH_PREFIX.trim(); // remove whitespace
+if (PATH_PREFIX = "/") {
+    PATH_PREFIX = "";
+}
 
 // not const-for testing
 export let LINKS_FILE = process.env.LINKS_FILE as string;
-// not const-for testing
 export let USERS_FILE = process.env.USERS_FILE as string;
 
 export const SERVER_ROOT = path.join(__dirname, '../');
