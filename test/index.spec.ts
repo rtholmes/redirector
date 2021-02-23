@@ -269,13 +269,23 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(res.header.location).to.equal("https://se.cs.ubc.ca/")
             });
 
-
             it("successfully renders with /", async () => {
                 const res = await chai.request(app).get('/');
 
                 expect(res).to.have.status(200);
                 expect(res.text).to.not.match(/alert/);
                 expect(res.text).to.match(/Enter Name/);
+            });
+
+            it("successfully redirects to / with invalid fwd name", async () => {
+                const agent = chai.request.agent(app); // agent supports sessions
+                const res = await agent.post('/fwd')
+                    .send({name: 'DOESNOTEXIST'})
+
+                console.log(res.header);
+                expect(res).to.have.status(200);
+                expect(res.text).to.match(/alert alert-danger/);
+                expect(res.text).to.match(/Name not found: DOESNOTEXIST/);
             });
 
             it("fail to redirect with invalid /", async () => {
