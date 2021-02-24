@@ -277,6 +277,25 @@ const runTests = function (title: string, noPrefix: boolean) {
                 expect(res.text).to.match(/Enter Name/);
             });
 
+            it("successfully gets the static images", async () => {
+                const images = [
+                    'icon.png',
+                    'github.png',
+                    'key.png',
+                    'trash.png'
+                ]
+
+                for (const image of images) {
+                    const res = await chai.request(app).get('/admin/static/' + image);
+                    // console.log(res.header);
+                    expect(res).to.have.status(200);
+                    expect(res.header["content-type"]).to.equal("image/png");
+                    expect(Number(res.header["content-length"])).to.be.greaterThan(3000);
+                    expect(Number(res.header["content-length"])).to.be.lessThan(13000);
+                    console.log("worked: " + image);
+                }
+            });
+
             it("successfully redirects to / with invalid fwd name", async () => {
                 const agent = chai.request.agent(app); // agent supports sessions
                 const res = await agent.post('/fwd')
