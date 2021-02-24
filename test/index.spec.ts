@@ -286,6 +286,11 @@ const runTests = function (title: string, noPrefix: boolean) {
                 ]
 
                 for (const image of images) {
+                    // This is confusing:
+                    // when PATH_PREFIX is set, it will be injected into the hbs views
+                    // so this should be PATH_PREFIX + '/admin/...'
+                    // but: nginx rewrite actually takes care of the prefix
+                    // so the system (less the views) is unaware of it
                     const res = await chai.request(app).get('/admin/static/' + image);
                     // console.log(res.header);
                     expect(res).to.have.status(200);

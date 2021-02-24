@@ -64,20 +64,25 @@ function sendToRedirect(name: string, req: Request, res: Response) {
     const url = getLink(name);
     if (url !== null) {
         // prefer redirect over a meta hack
-        console.log("sendToRedirect - name: " + name);
+        console.log("sendToRedirect - found; name: " + name);
         res.redirect(301, url);
     } else {
-        let opts = {
-            message: "Name not found: " + name,
-            messageClass: "alert-danger",
-            prefix: PATH_PREFIX
-        };
+        let opts = (req.session as any).opts || {};
+        console.log("sendToRedirect - not found; initial opts: " + JSON.stringify(opts));
+
+        opts.message = "Name not found: " + name;
+        opts.messageClass = "alert-danger";
+        opts.prefix = PATH_PREFIX;
+
         setLoggedOut(opts, req);
+
         (req.session as any).opts = opts;
-        console.log("sendToRedirect - prefix: " + PATH_PREFIX + "; opts: " + JSON.stringify(opts));
-        if (PATH_PREFIX.trim().length < 1) {
+        console.log("sendToRedirect - not found; opts: " + JSON.stringify(opts));
+        if (PATH_PREFIX === "") {
+            console.log("sendToRedirect - not found; sending to default");
             res.redirect("/");
         } else {
+            console.log("sendToRedirect - not found; sending to: " + PATH_PREFIX);
             res.redirect(PATH_PREFIX);
         }
         // res.render("home", opts);

@@ -10,6 +10,9 @@ PATH_PREFIX = PATH_PREFIX.trim(); // remove whitespace
 if (PATH_PREFIX = "/") {
     PATH_PREFIX = "";
 }
+if (PATH_PREFIX.length > 1 && !PATH_PREFIX.startsWith("/")) {
+    PATH_PREFIX = "/" + PATH_PREFIX;
+}
 
 // not const-for testing
 export let LINKS_FILE = process.env.LINKS_FILE as string;
@@ -18,6 +21,13 @@ export let USERS_FILE = process.env.USERS_FILE as string;
 export const SERVER_ROOT = path.join(__dirname, '../');
 export const LOG_PATH = path.join(SERVER_ROOT, "log");
 export const STATIC_PATH = path.join(SERVER_ROOT, "public");
+
+export function printConfiguration() {
+    console.log("PATH_PREFIX: " + PATH_PREFIX);
+    console.log("LINKS_FILE: " + LINKS_FILE);
+    console.log("USERS_FILE: " + USERS_FILE);
+    console.log("LOG_PATH: " + LOG_PATH);
+}
 
 export function configureForTesting() {
     const ts = Date.now();
