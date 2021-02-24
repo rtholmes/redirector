@@ -4,8 +4,8 @@ require('dotenv').config();
 // not const-for testing
 
 export let HOST_PREFIX = process.env.HOST_PREFIX as string;
-
 export let PATH_PREFIX = process.env.PATH_PREFIX as string;
+console.log("PATH_PREFIX (initial): " + PATH_PREFIX + "; length: " + PATH_PREFIX.length);
 PATH_PREFIX = PATH_PREFIX.trim(); // remove whitespace
 if (PATH_PREFIX = "/") {
     PATH_PREFIX = "";
