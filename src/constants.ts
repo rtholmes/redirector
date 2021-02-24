@@ -7,10 +7,12 @@ export let HOST_PREFIX = process.env.HOST_PREFIX as string;
 export let PATH_PREFIX = process.env.PATH_PREFIX as string;
 console.log("PATH_PREFIX (initial): " + PATH_PREFIX + "; length: " + PATH_PREFIX.length);
 PATH_PREFIX = PATH_PREFIX.trim(); // remove whitespace
-if (PATH_PREFIX = "/") {
+if (PATH_PREFIX === "/") {
+    // empty path shouldn't be just a slash (although that is a natural value to put there)
     PATH_PREFIX = "";
 }
 if (PATH_PREFIX.length > 1 && !PATH_PREFIX.startsWith("/")) {
+    // ensure initial slash is there
     PATH_PREFIX = "/" + PATH_PREFIX;
 }
 
