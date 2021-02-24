@@ -78,14 +78,14 @@ function sendToRedirect(name: string, req: Request, res: Response) {
 
         (req.session as any).opts = opts;
         console.log("sendToRedirect - not found; opts: " + JSON.stringify(opts));
-        if (PATH_PREFIX === "") {
-            console.log("sendToRedirect - not found; sending to default");
-            res.redirect("/");
-        } else {
-            console.log("sendToRedirect - not found; sending to: " + PATH_PREFIX);
-            res.redirect(PATH_PREFIX);
-        }
-        // res.render("home", opts);
+        // if (PATH_PREFIX === "") {
+        //     console.log("sendToRedirect - not found; sending to default");
+        //     res.redirect("/");
+        // } else {
+        //     console.log("sendToRedirect - not found; sending to: " + PATH_PREFIX);
+        //     res.redirect(PATH_PREFIX);
+        // }
+        res.render("home", opts);
     }
 }
 
