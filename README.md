@@ -4,6 +4,18 @@ This is a simple URL forwarding service configured for self hosting. It can gene
 
 The goal of the project is to be relatively simple (it is backed by `.json` files instead of a database), but to allow self-registration, login, and link creation/deletion/modification. Users can only modify the links they create.
 
+If you are using this in a dockerized environment under a prefix (say `go/`) the following `nginx.conf` rewrite rule may be uesful:
+
+```
+location /go {
+    port_in_redirect   off;
+    rewrite            ^/go(/.*) $1 break;
+    rewrite            ^/go$ / break;
+    proxy_read_timeout 240;
+    proxy_pass         http://redirector:3000;
+}
+```
+
 ## Dev
 
 This project was created using [create-express-typescript-app](https://www.npmjs.com/package/express-generator-typescript) which was invoked by calling `npx express-generator-typescript`. The docs below are from the bootstrap project.
