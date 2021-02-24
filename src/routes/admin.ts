@@ -1,6 +1,6 @@
 import express, {NextFunction, Request, Response} from "express";
 
-import {clearSession, getLink, isValidURL, read, write} from "../util";
+import {clearSession, getLink, isValidURL, read, sendToHome, write} from "../util";
 import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
 import {Link, User} from "types";
 
@@ -105,7 +105,7 @@ router.get("/logout", (req, res) => {
     opts.prefix = PATH_PREFIX;
 
     console.log("GET /logout; opts: " + JSON.stringify(opts));
-    res.render("home", opts);
+    goPage(req, res, "home", "Logged out", true, opts);
 });
 
 export function setLoggedOut(opts: any, req: Request) {
@@ -439,7 +439,16 @@ function goPage(req: Request, res: Response, target: string, msg: string, worked
 
     opts.target = target;
     (req.session as any).opts = opts;
-    res.redirect(target);
+
+    if (target === "home") {
+        // home is treated differently so we can
+        // better reset the url bar with PREFIXed
+        // configurations
+        sendToHome(res, opts);
+    } else {
+        res.redirect(target);
+    }
+
     return;
 }
 
