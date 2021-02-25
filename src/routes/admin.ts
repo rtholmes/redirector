@@ -417,7 +417,7 @@ const getHashedPassword = (password: any) => {
 
 
 function goPage(req: Request, res: Response, target: string, msg: string, worked: boolean, opts?: any) {
-    console.log("goPage - answer; worked: " + worked + "; msg: " + msg);
+    console.log("goPage - start; worked: " + worked + "; msg: " + msg);
     let messageClass = "alert-danger";
     if (worked === true) {
         messageClass = "alert-success";
@@ -441,6 +441,7 @@ function goPage(req: Request, res: Response, target: string, msg: string, worked
     (req.session as any).opts = opts;
 
     if (target === "home") {
+        console.log("goPage - home");
         // home is treated differently so we can
         // better reset the url bar with PREFIXed
         // configurations

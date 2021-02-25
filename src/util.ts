@@ -2,7 +2,7 @@ import fs from "fs-extra";
 
 import {Request, Response} from "express";
 import {Link, User} from "types";
-import {isTestEnvironment, LINKS_FILE, PATH_PREFIX} from "./constants";
+import {LINKS_FILE, PATH_PREFIX} from "./constants";
 
 const URL = require("url").URL;
 
@@ -101,19 +101,19 @@ export function clearSession(req: Request) {
 
 export function sendToHome(res: Response, opts: any) {
     // this is downright terrible, changing behaviours for tests should not happen
-    if (isTestEnvironment() === true) {
-        console.log("sendToHome - not found; rendering home");
-        // the else block below works, and fixes the client URL
-        // but fails the test suite because PREFIX is served by the nginx proxy
-        // but needs to be injected into the hbs views
-        res.render("home", opts);
+    // if (isTestEnvironment() === true) {
+    //     console.log("sendToHome - not found; rendering home");
+    //     // the else block below works, and fixes the client URL
+    //     // but fails the test suite because PREFIX is served by the nginx proxy
+    //     // but needs to be injected into the hbs views
+    //     res.render("home", opts);
+    // } else {
+    if (PATH_PREFIX === "") {
+        console.log("sendToHome - not found; sending to default");
+        res.redirect("/");
     } else {
-        if (PATH_PREFIX === "") {
-            console.log("sendToHome - not found; sending to default");
-            res.redirect("/");
-        } else {
-            console.log("sendToHome - not found; sending to: " + PATH_PREFIX);
-            res.redirect(PATH_PREFIX);
-        }
+        console.log("sendToHome - prefix found; sending to: " + PATH_PREFIX);
+        res.redirect(PATH_PREFIX);
     }
+    // }
 }

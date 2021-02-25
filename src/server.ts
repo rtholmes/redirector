@@ -50,9 +50,9 @@ export default class Server {
             cookie: {maxAge: 60 * 60 * 1000} // 60 min
         }));
 
-        this.app.use("/admin/static", express.static('public'));
-        this.app.use("/admin", AdminRouter);
-        this.app.use("/", PublicRouter);
+        this.app.use(PATH_PREFIX + "/admin/static", express.static('public'));
+        this.app.use(PATH_PREFIX + "/admin", AdminRouter);
+        this.app.use(PATH_PREFIX + "/", PublicRouter);
 
         this.app.engine("hbs", exphbs({
             extname: ".hbs"
