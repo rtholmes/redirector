@@ -7,9 +7,11 @@ node_modules
 
 # testing
 coverage
+.nyc_output
 
 # production
 build
+data
 
 # misc
 .DS_Store
@@ -18,6 +20,11 @@ build
 .env.test.local
 .env.production.local
 
+# dependency logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# ide
+.idea
+
