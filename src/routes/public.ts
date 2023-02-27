@@ -10,21 +10,21 @@ const router = express.Router();
  * The default home page provides a simple view for entering a short link.
  */
 router.get("/", async function (req, res, next) {
-    console.log("GET / - start");
+    console.log("public::GET / - start");
     let opts = null;
 
     if (typeof (req.session as any).opts === "object") {
-        console.log("GET / - start; has session opts");
+        console.log("public::GET / - start; has session opts");
         opts = (req.session as any).opts;
         clearSession(req);
     } else {
-        console.log("GET / - start; no session opts");
+        console.log("public::GET / - start; no session opts");
         opts = {};
     }
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts, req);
 
-    console.log("GET / - rendering with opts: " + JSON.stringify(opts));
+    console.log("public::GET / - rendering with opts: " + JSON.stringify(opts));
     res.render("home", opts);
     return;
 });
@@ -34,7 +34,7 @@ router.get("/", async function (req, res, next) {
  */
 router.get("/*", async function (req, res, next) {
     let name = req.path;
-    console.log("GET /* - start; name: " + name);
+    console.log("public::GET /* - start; name: " + name);
     sendToRedirect(name, req, res);
 });
 
@@ -43,7 +43,7 @@ router.get("/*", async function (req, res, next) {
  */
 router.post("/fwd", async function (req, res, next) {
     let name = req.body.name;
-    console.log("POST /fwd - start; name: " + name);
+    console.log("public::POST /fwd - start; name: " + name);
     sendToRedirect(name, req, res);
 });
 
@@ -59,16 +59,16 @@ function cleanName(name: string): string {
 
 function sendToRedirect(name: string, req: Request, res: Response) {
     name = cleanName(name);
-    console.log("sendToRedirect - start; name: " + name + "; prefix: " + PATH_PREFIX);
+    console.log("public::sendToRedirect(..) - start; name: " + name + "; prefix: " + PATH_PREFIX);
 
     const url = getLink(name);
     if (url !== null) {
         // prefer redirect over a meta hack
-        console.log("sendToRedirect - found; name: " + name);
+        console.log("public::sendToRedirect(..) - found; name: " + name);
         res.redirect(301, url);
     } else {
         let opts = (req.session as any).opts || {};
-        console.log("sendToRedirect - not found; initial opts: " + JSON.stringify(opts));
+        console.log("public::sendToRedirect(..) - not found; initial opts: " + JSON.stringify(opts));
 
         opts.message = "Name not found: " + name;
         opts.messageClass = "alert-danger";
@@ -77,7 +77,7 @@ function sendToRedirect(name: string, req: Request, res: Response) {
         setLoggedOut(opts, req);
 
         (req.session as any).opts = opts;
-        console.log("sendToRedirect - not found; opts: " + JSON.stringify(opts));
+        console.log("public::sendToRedirect(..) - not found; opts: " + JSON.stringify(opts));
 
         sendToHome(res, opts);
     }

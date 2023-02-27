@@ -29,14 +29,14 @@ function isLoggedIn(req: Request): boolean {
 
         if (user && getHashedPassword(user.password) === authToken) {
             // login successful
-            console.log("isLoggedIn - success; user: " + authUser);
+            console.log("admin::isLoggedIn(..) - success; user: " + authUser);
             login = true;
         } else {
-            console.log("isLoggedIn - nope");
+            console.log("admin::isLoggedIn(..) - nope");
         }
     } else {
         // cookies missing
-        console.log("isLoggedIn - cookies missing; authUser: " + authUser + "; authToken: " + authToken);
+        console.log("admin::isLoggedIn(..) - cookies missing; authUser: " + authUser + "; authToken: " + authToken);
     }
     return login;
 }
@@ -50,16 +50,16 @@ function isLoggedIn(req: Request): boolean {
  *
  */
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    console.log("requireAuth - start");
+    console.log("admin::requireAuth(..) - start");
     let login = isLoggedIn(req);
 
     if (login === true) {
         // login successful
-        console.log("requireAuth - logged in");
+        console.log("admin::requireAuth(..) - logged in");
         login = true;
         next();
     } else {
-        console.log("requireAuth - NOT logged in");
+        console.log("admin::requireAuth(..) - NOT logged in");
         goPage(req, res, "login", "Please login to continue.", false);
         // NOTE: next() is _NOT_ called here to stop request chain.
     }
@@ -89,12 +89,12 @@ router.get("/register", (req, res) => {
     let opts = (req.session as any).opts || {};
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts, req);
-    console.log("GET /register; opts: " + JSON.stringify(opts));
+    console.log("admin::GET /register; opts: " + JSON.stringify(opts));
     res.render("register", opts);
 });
 
 router.get("/logout", (req, res) => {
-    console.log("GET /logout - start");
+    console.log("admin::GET /logout - start");
     let opts: any = {};
 
     res.cookie("AuthToken", "");
@@ -104,7 +104,7 @@ router.get("/logout", (req, res) => {
     opts.isLoggedOut = true;
     opts.prefix = PATH_PREFIX;
 
-    console.log("GET /logout; opts: " + JSON.stringify(opts));
+    console.log("admin::GET /logout; opts: " + JSON.stringify(opts));
     goPage(req, res, "home", "Logged out", true, opts);
 });
 
@@ -124,22 +124,22 @@ router.get("/login", (req, res) => {
     let opts = (req.session as any).opts || {};
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts, req);
-    console.log("GET /login; opts: " + JSON.stringify(opts));
+    console.log("admin::GET /login; opts: " + JSON.stringify(opts));
     res.render("login", opts);
 });
 
 router.get("/links", requireAuth, async function (req, res) {
-    console.log("GET /links - start;");
+    console.log("admin::GET /links - start;");
     let opts = null;
 
     if (typeof (req.session as any).opts === "object") {
-        console.log("GET /links - start; has session opts");
+        console.log("admin::GET /links - start; has session opts");
         opts = (req.session as any).opts;
         clearSession(req);
     }
 
     if (opts === null || opts.target !== "links") {
-        console.log("GET /links - start; no session opts");
+        console.log("admin::GET /links - start; no session opts");
         const links = listLinks((req as any).authUser);
         opts = {
             linkTable: links
@@ -155,10 +155,10 @@ router.get("/links", requireAuth, async function (req, res) {
 
 router.post("/createLink", requireAuth, async function (req, res, next) {
     let {name, url} = req.body;
-    console.log("POST /createLink - start; name: " + name + "; url: " + url);
+    console.log("admin::POST /createLink - start; name: " + name + "; url: " + url);
 
     if (typeof name !== "string" || typeof url !== "string") {
-        console.log("POST /createLink - name: " + name + "; url: " + url);
+        console.log("admin::POST /createLink - name: " + name + "; url: " + url);
         goPage(req, res, "links", "Required params missing.", false);
         return;
     }
@@ -166,11 +166,11 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     const user = (req as any).authUser;
 
     const answer = function (msg: string, worked: boolean, opts?: any) {
-        console.log("POST /createLink - answer; msg: " + msg + "; worked: " + worked);
+        console.log("admin::POST /createLink - answer; msg: " + msg + "; worked: " + worked);
         if (typeof opts === "undefined") {
             opts = {};
         }
-        console.log("POST /createLink - answer; opts: " + JSON.stringify(opts)); // before linktable for size
+        console.log("admin::POST /createLink - answer; opts: " + JSON.stringify(opts)); // before linktable for size
         opts.linkTable = listLinks(user);
         goPage(req, res, "links", msg, worked, opts);
     }
@@ -180,13 +180,13 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     name = name.trim();
     url = url.trim();
 
-    console.log("POST /createLink - verifying; name: " + name + "; url: " + url);
+    console.log("admin::POST /createLink - verifying; name: " + name + "; url: " + url);
 
     while (name.indexOf("*") >= 0) {
         // transform * into generated chars
         const part = crypto.randomBytes(2).toString("hex");
         name = name.replace("*", part); // replace only does one instance at a time
-        console.log("POST /createLink - replaced *; name: " + name);
+        console.log("admin::POST /createLink - replaced *; name: " + name);
     }
 
     if (name.length === 0) {
@@ -199,7 +199,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
             name = letter + name.substr(1);
         }
 
-        console.log("POST /createLink - final generated name: " + name);
+        console.log("admin::POST /createLink - final generated name: " + name);
     } else if (name.length < 3) {
         // let threeChars = new RegExp("/(.*[a-z]){3}/i");
         answer("Name must be > 3 letters (or blank).", false);
@@ -226,7 +226,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     }
 
     // must be new and valid; make it!
-    console.log("POST /createLink - make new; name: " + name + "; url: " + url);
+    console.log("admin::POST /createLink - make new; name: " + name + "; url: " + url);
 
     // let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
     let dStr = moment().format(); // 24h time, show UTC offset
@@ -252,17 +252,17 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
     let id = req.query.name;
 
     if (typeof id !== "string") {
-        console.log("GET /removeLink - id: " + id);
+        console.log("admin::GET /removeLink - id: " + id);
         goPage(req, res, "links", "Required params missing.", false);
         return;
     }
 
     id = id.trim();
-    console.log("GET /removeLink - start; name: " + id);
+    console.log("admin::GET /removeLink - start; name: " + id);
     const user = (req as any).authUser;
 
     const answer = function (msg: string, worked: boolean, opts?: any) {
-        console.log("GET /removeLink - answer; msg: " + msg + "; worked: " + worked);
+        console.log("admin::GET /removeLink - answer; msg: " + msg + "; worked: " + worked);
         if (typeof opts === "undefined") {
             opts = {};
         }
@@ -277,7 +277,7 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
             return innerLink.name === id;
         });
 
-        console.log("GET /removeLink - linkExists: " + JSON.stringify(linkExists));
+        console.log("admin::GET /removeLink - linkExists: " + JSON.stringify(linkExists));
         if (linkExists === null || linkExists.length !== 1) {
             // does not exist
             answer("Cannot remove this link as it does not exist.", false);
@@ -286,7 +286,7 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
             answer("Cannot remove this link as it was created by another user.", false);
         } else {
             // delete
-            console.log("GET /removeLink - before deletion: " + links.length);
+            console.log("admin::GET /removeLink - before deletion: " + links.length);
             const newLinks = links.filter(function (innerLink: any) {
                 return innerLink.name !== id;
             });
@@ -302,12 +302,12 @@ router.post("/register", (req, res) => {
     const {username, password, confirmPassword} = req.body;
 
     const answer = function (msg: string) {
-        console.log("POST /register - answer; msg: " + msg);
+        console.log("admin::POST /register - answer; msg: " + msg);
         goPage(req, res, "register", msg, false);
     }
 
     if (typeof username === "undefined" || typeof password === "undefined" || typeof confirmPassword === "undefined") {
-        console.log("POST /register - username: " + username + "; password: " + password + "; confirm: " + confirmPassword);
+        console.log("admin::POST /register - username: " + username + "; password: " + password + "; confirm: " + confirmPassword);
         answer("Required params missing.");
         return;
     }
@@ -344,10 +344,10 @@ router.post("/register", (req, res) => {
  */
 router.post("/login", (req, res) => {
     const {username, password} = req.body;
-    console.log("POST login/ - start; username: " + username);
+    console.log("admin::POST login/ - start; username: " + username);
 
     if (typeof username === "undefined" || typeof password === "undefined") {
-        console.log("POST /login - username: " + username + "; password: " + password);
+        console.log("admin::POST /login - username: " + username + "; password: " + password);
         goPage(req, res, "login", "Required params missing.", false);
         return;
     }
@@ -360,7 +360,7 @@ router.post("/login", (req, res) => {
     });
 
     if (user) {
-        console.log("POST login/ - successful; username: " + username);
+        console.log("admin::POST login/ - successful; username: " + username);
 
         // Setting the auth cookie details
         const authToken = getHashedPassword(hashedPassword);
@@ -370,7 +370,7 @@ router.post("/login", (req, res) => {
         // Redirect user to the links page
         res.redirect("links");
     } else {
-        console.log("POST login/ - failed; username: " + username);
+        console.log("admin::POST login/ - failed; username: " + username);
 
         // Clear the auth cookie details
         res.cookie("AuthToken", "");
@@ -387,7 +387,7 @@ router.post("/login", (req, res) => {
  * @param user
  */
 function listLinks(user: string): any {
-    console.log("listLinks( " + user + " ) - start");
+    console.log("admin::listLinks( " + user + " ) - start");
     const ret = [];
     const links = read(LINKS_FILE) as Link[];
     for (const link of links) {
@@ -396,7 +396,7 @@ function listLinks(user: string): any {
             ret.push(link);
         }
     }
-    console.log("listLinks( " + user + " ) - returning: " + ret.length);
+    console.log("admin::listLinks( " + user + " ) - returning: " + ret.length);
     return ret;
 }
 
@@ -417,7 +417,7 @@ const getHashedPassword = (password: any) => {
 
 
 function goPage(req: Request, res: Response, target: string, msg: string, worked: boolean, opts?: any) {
-    console.log("goPage - start; worked: " + worked + "; msg: " + msg);
+    console.log("admin::goPage(..) - start; worked: " + worked + "; msg: " + msg);
     let messageClass = "alert-danger";
     if (worked === true) {
         messageClass = "alert-success";
@@ -441,7 +441,7 @@ function goPage(req: Request, res: Response, target: string, msg: string, worked
     (req.session as any).opts = opts;
 
     if (target === "home") {
-        console.log("goPage - home");
+        console.log("admin::goPage(..) - home");
         // home is treated differently so we can
         // better reset the url bar with PREFIXed
         // configurations
