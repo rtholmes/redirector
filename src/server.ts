@@ -50,7 +50,7 @@ export default class Server {
             cookie: {maxAge: 60 * 60 * 1000} // 60 min
         }));
 
-        this.app.use(PATH_PREFIX + "/admin/static", express.static('public'));
+        this.app.use(PATH_PREFIX + "/admin/static", express.static("public"));
         this.app.use(PATH_PREFIX + "/admin", AdminRouter);
         this.app.use(PATH_PREFIX + "/", PublicRouter);
 
@@ -115,14 +115,12 @@ export default class Server {
             }
         });
 
-        that.server.on('SIGTERM', () => this.shutDown());
-        that.server.on('SIGKILL', () => this.shutDown());
+        that.server.on("SIGTERM", () => this.shutDown());
+        that.server.on("SIGKILL", () => this.shutDown());
 
-        // return (async () => {
-        console.log("Starting application server");
+        console.log("Server::start() - Starting application server");
         that.server.listen(port);
-        console.log(`Server is up @ http://localhost:${port}${PATH_PREFIX}`);
-        // })();
+        console.log(`Server::start() - Server is up @ http://localhost:${port}${PATH_PREFIX}`);
     }
 
     // TODO: do we need a close function?
@@ -132,8 +130,8 @@ export default class Server {
     }
 
     public async shutDown() {
-        console.log('Server::shutdown() - starting shutdown');
+        console.log("Server::shutdown() - starting shutdown");
         await this.server.close();
-        console.log('Server::shutdown() - done');
+        console.log("Server::shutdown() - done");
     }
 }
