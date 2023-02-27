@@ -1,4 +1,7 @@
 import path from "path";
+import * as fs from "fs";
+
+import {read} from "./util";
 
 require("dotenv").config();
 
@@ -18,8 +21,6 @@ export function checkConstantExists() {
 		process.exit(-1);
 	}
 }
-
-checkConstantExists();
 
 export let HOST_PREFIX = process.env.HOST_PREFIX as string;
 export let PATH_PREFIX = process.env.PATH_PREFIX as string;
@@ -67,4 +68,15 @@ export function configureForTesting() {
 export function configurePrefixForTesting() {
 	process.env.PATH_PREFIX = "/testsuite"
 	PATH_PREFIX = process.env.PATH_PREFIX;
+}
+
+export function checkPermissions() {
+	console.log("constants::checkPermissions() - start");
+	// check read (create if needed)
+	read(LINKS_FILE);
+	read(USERS_FILE);
+	// ensure write
+	fs.accessSync(LINKS_FILE, fs.constants.R_OK | fs.constants.W_OK);
+	fs.accessSync(USERS_FILE, fs.constants.R_OK | fs.constants.W_OK);
+	console.log("constants::checkPermissions() - done");
 }

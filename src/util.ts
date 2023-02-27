@@ -20,7 +20,8 @@ export const normalizePort = (val: string) => {
 }
 
 /**
- * Read JSON data file
+ * Read JSON data file.
+ *
  * @param fName
  */
 export function read(fName: string): User[] | Link[] {
@@ -38,7 +39,8 @@ export function read(fName: string): User[] | Link[] {
 }
 
 /**
- * Write JSON object to file
+ * Write JSON object to file.
+ *
  * @param fName
  * @param data
  */

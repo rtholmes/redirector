@@ -11,7 +11,7 @@ import debugLib from "debug";
 
 import {ApplicationError} from "./types";
 import {normalizePort} from "./util";
-import {LOG_PATH, PATH_PREFIX, printConfiguration} from "./constants";
+import {checkConstantExists, checkPermissions, LOG_PATH, PATH_PREFIX, printConfiguration} from "./constants";
 
 import PublicRouter from "./routes/public";
 import AdminRouter from "./routes/admin";
@@ -32,6 +32,8 @@ export default class Server {
     constructor() {
         console.log("Server::<init> - start; prefix: " + PATH_PREFIX);
 
+        checkConstantExists();
+        checkPermissions();
         printConfiguration();
 
         // Apache commons style logging
