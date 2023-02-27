@@ -13,7 +13,7 @@ Users can only modify the links they create.
 
 ## Docker
 
-If you are using this in a dockerized environment under a prefix (say `go/`) the following `nginx.conf` rewrite rule may be uesful:
+If you are using this in a dockerized environment under a prefix (say `go/`) the following `nginx.conf` rewrite rule may be useful:
 
 ```
 location /go {
@@ -45,3 +45,8 @@ The test suites should all pass when run locally.
 * `yarn build` To create compiled version for prod. 
 * `yarn start-prod` To run in production.
 * `yarn stop-prod -- <id>` To stop in production.
+
+## Docker local
+
+* run: `docker run -p 3000:3000 redirector`
+* stop: `docker stop $(docker ps -q --filter ancestor=redirector)`
