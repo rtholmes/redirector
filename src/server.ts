@@ -30,7 +30,7 @@ export default class Server {
     private server: http.Server;
 
     constructor() {
-        console.log("server::<init> - start; prefix: " + PATH_PREFIX);
+        console.log("Server::<init> - start; prefix: " + PATH_PREFIX);
 
         printConfiguration();
 
@@ -71,7 +71,7 @@ export default class Server {
         this.app.set("port", port);
 
         this.server = http.createServer(this.app);
-        console.log("server::<init> - done");
+        console.log("Server::<init> - done");
     }
 
     /* istanbul ignore next */

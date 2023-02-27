@@ -26,7 +26,7 @@ export let PATH_PREFIX = process.env.PATH_PREFIX as string;
 console.log("PATH_PREFIX (initial): " + PATH_PREFIX + "; length: " + PATH_PREFIX.length);
 PATH_PREFIX = PATH_PREFIX.trim(); // remove whitespace
 if (PATH_PREFIX === "/") {
-	// empty path shouldn"t be just a slash (although that is a natural value to put there)
+	// empty path should not be just a slash (although that is a natural value to put there)
 	PATH_PREFIX = "";
 }
 if (PATH_PREFIX.length > 1 && !PATH_PREFIX.startsWith("/")) {
@@ -40,9 +40,9 @@ export let USERS_FILE = process.env.USERS_FILE as string;
 
 export const SERVER_ROOT = path.join(__dirname, "../");
 export const LOG_PATH = path.join(SERVER_ROOT, "log");
-export const STATIC_PATH = path.join(SERVER_ROOT, "public");
 
 export function printConfiguration() {
+	console.log("HOST_PREFIX: " + HOST_PREFIX);
 	console.log("PATH_PREFIX: " + PATH_PREFIX);
 	console.log("LINKS_FILE: " + LINKS_FILE);
 	console.log("USERS_FILE: " + USERS_FILE);
