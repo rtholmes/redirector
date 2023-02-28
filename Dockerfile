@@ -1,4 +1,4 @@
-FROM node:14-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
@@ -11,8 +11,8 @@ COPY yarn.lock     ./
 
 # For local debugging, enable these two statements
 # run with: docker run -p 3000:3000 redirector
-# COPY .env          ./
-# COPY data          ./data
+#COPY .env          ./
+#COPY data          ./data
 
 RUN yarn install
 RUN yarn build
