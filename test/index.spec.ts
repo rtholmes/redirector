@@ -3,10 +3,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-import {configureForTesting, configurePrefixForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
+import {configureForTesting, configurePrefixForTesting, HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
 import Server from "../src/server";
 import {read} from "../src/util";
 import {startTestServer, TestAgent} from "./testAgent";
+
+// escape text for use inside a regular expression
+function escapeRegExp(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 // set or remove an environment variable, e.g. to restore one a test changed
 function restoreEnv(name: string, value: string | undefined) {
@@ -243,8 +248,11 @@ const runTests = function (title: string, noPrefix: boolean) {
                 assert.equal(res.status, 200);
                 assert.match(res.text, /alert alert-success/);
                 assert.match(res.text, /Link successfully created./);
-                let m = "http:\/\/localhost:3000\/" + PATH_PREFIX + "test\/deep";
-                assert.match(res.text, /m/);
+                // each * becomes four random hex digits, and the success message shows the full
+                // new short link as its text (the links table shows only the name)
+                const newLink = escapeRegExp(HOST_PREFIX + PATH_PREFIX) +
+                    "/test/deep/[0-9a-f]{4}/[0-9a-f]{4}/deeperthings/[0-9a-f]{4}";
+                assert.match(res.text, new RegExp(">" + newLink + "</a>"));
                 assert.match(res.text, /deeperthings\//);
             });
 

@@ -1,7 +1,7 @@
 import express, {Request, Response} from "express";
 
 import {clearFlash, getFlash, getLink, sendToHome, setFlash} from "../util";
-import {isTestEnvironment, PATH_PREFIX} from "../constants";
+import {PATH_PREFIX} from "../constants";
 import {setLoggedOut} from "./admin";
 
 const router = express.Router();
