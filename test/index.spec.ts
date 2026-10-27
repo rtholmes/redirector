@@ -8,6 +8,15 @@ import Server from "../src/server";
 import {read} from "../src/util";
 import {startTestServer, TestAgent} from "./testAgent";
 
+// set or remove an environment variable, e.g. to restore one a test changed
+function restoreEnv(name: string, value: string | undefined) {
+    if (value === undefined) {
+        delete process.env[name];
+    } else {
+        process.env[name] = value;
+    }
+}
+
 // tests are encapsulated in a function so we can run them twice
 // once with a prefix and once without
 
@@ -386,9 +395,110 @@ const runTests = function (title: string, noPrefix: boolean) {
                 assert.equal(endLinkCount, startLinkCount - 1);
             });
 
-            it.skip("fails when link is not yours to delete", async () => {
-                // TODO: look at number of links before
-                // TODO: look at number of links after is the same
+        });
+
+        describe("registration setting (#17)", () => {
+            const original = process.env.ALLOW_REGISTRATION;
+            after(() => restoreEnv("ALLOW_REGISTRATION", original));
+
+            it("refuses new accounts when ALLOW_REGISTRATION is false", async () => {
+                process.env.ALLOW_REGISTRATION = "false";
+                const startUserCount = read(USERS_FILE).length;
+                const res = await new TestAgent(baseUrl).post(PATH_PREFIX + '/admin/register')
+                    .send({username: 'blocked17', password: 'pw17', confirmPassword: 'pw17'});
+
+                assert.equal(res.status, 200);
+                assert.match(res.text, /alert alert-danger/);
+                assert.match(res.text, /Registration is disabled./);
+                assert.match(res.text, /User name:/); // landed on the login page
+                assert.equal(read(USERS_FILE).length, startUserCount);
+            });
+
+            it("sends the register page to login when ALLOW_REGISTRATION is false", async () => {
+                process.env.ALLOW_REGISTRATION = "false";
+                const res = await new TestAgent(baseUrl).get(PATH_PREFIX + '/admin/register');
+
+                assert.equal(res.status, 200);
+                assert.match(res.text, /Registration is disabled./);
+                assert.doesNotMatch(res.text, /name="confirmPassword"/);
+            });
+
+            it("allows registration when ALLOW_REGISTRATION is unset", async () => {
+                delete process.env.ALLOW_REGISTRATION;
+                const res = await new TestAgent(baseUrl).get(PATH_PREFIX + '/admin/register');
+
+                assert.equal(res.status, 200);
+                assert.match(res.text, /name="confirmPassword"/);
+            });
+        });
+
+        describe("admins setting (#16)", () => {
+            const original = process.env.ADMINS;
+            after(() => restoreEnv("ADMINS", original));
+
+            // register a new user and return an agent logged in as them
+            async function loginAs(username: string): Promise<TestAgent> {
+                const agent = new TestAgent(baseUrl);
+                await agent.post(PATH_PREFIX + '/admin/register').send({username, password: 'pw16', confirmPassword: 'pw16'});
+                const res = await agent.post(PATH_PREFIX + '/admin/login').send({username, password: 'pw16'});
+                assert.match(res.text, /Create New Link/);
+                return agent;
+            }
+            const createLink = (agent: TestAgent, name: string) =>
+                agent.post(PATH_PREFIX + '/admin/createLink').send({name, url: 'https://example.org/' + name});
+            const removeLink = (agent: TestAgent, name: string) =>
+                agent.get(PATH_PREFIX + '/admin/removeLink?name=' + name);
+            const linksPage = async (agent: TestAgent) => (await agent.get(PATH_PREFIX + '/admin/links')).text;
+
+            let owner: TestAgent, other: TestAgent, admin: TestAgent, boss: TestAgent;
+            before(async () => {
+                owner = await loginAs("owner16");
+                other = await loginAs("other16");
+                admin = await loginAs("admin");
+                boss = await loginAs("boss16");
+            });
+
+            it("refuses to delete another user's link for non-admins", async () => {
+                delete process.env.ADMINS;
+                await createLink(owner, 'own16a');
+                const startLinkCount = read(LINKS_FILE).length;
+                const res = await removeLink(other, 'own16a');
+
+                assert.equal(res.status, 200);
+                assert.match(res.text, /alert alert-danger/);
+                assert.match(res.text, /Cannot remove this link as it was created by another user./);
+                assert.equal(read(LINKS_FILE).length, startLinkCount);
+            });
+
+            it("lets the admin user see and delete any link when ADMINS is unset", async () => {
+                delete process.env.ADMINS;
+                await createLink(owner, 'own16b');
+                assert.match(await linksPage(admin), /delete link own16b/);
+
+                const startLinkCount = read(LINKS_FILE).length;
+                const res = await removeLink(admin, 'own16b');
+
+                assert.equal(res.status, 200);
+                assert.match(res.text, /alert alert-success/);
+                assert.match(res.text, /Link removed./);
+                assert.equal(read(LINKS_FILE).length, startLinkCount - 1);
+            });
+
+            it("uses the ADMINS list instead of the admin user when set", async () => {
+                process.env.ADMINS = " nobody16 , boss16 ";
+                await createLink(owner, 'own16c');
+
+                // "admin" is now an ordinary user
+                assert.doesNotMatch(await linksPage(admin), /delete link own16c/);
+                assert.match((await removeLink(admin, 'own16c')).text, /created by another user/);
+
+                // boss16 is listed, despite the spaces around the names
+                assert.match(await linksPage(boss), /delete link own16c/);
+                const startLinkCount = read(LINKS_FILE).length;
+                const res = await removeLink(boss, 'own16c');
+
+                assert.match(res.text, /Link removed./);
+                assert.equal(read(LINKS_FILE).length, startLinkCount - 1);
             });
         });
 

@@ -42,11 +42,38 @@ if (PATH_PREFIX.length > 1 && !PATH_PREFIX.startsWith("/")) {
 export let LINKS_FILE = process.env.LINKS_FILE as string;
 export let USERS_FILE = process.env.USERS_FILE as string;
 
+/**
+ * Whether people can create their own accounts (#17). On unless ALLOW_REGISTRATION
+ * is false, 0, no or off. Read on every call so tests can change it.
+ */
+export function isRegistrationAllowed(): boolean {
+	const value = (process.env.ALLOW_REGISTRATION ?? "").trim().toLowerCase();
+	return !["false", "0", "no", "off"].includes(value);
+}
+
+/**
+ * Usernames that can see and delete every link (#16): ADMINS as a comma-separated
+ * list, or just "admin" when unset. Read on every call so tests can change it.
+ */
+export function getAdmins(): string[] {
+	const value = process.env.ADMINS;
+	if (value === undefined) {
+		return ["admin"];
+	}
+	return value.split(",").map(name => name.trim()).filter(name => name.length > 0);
+}
+
+export function isAdmin(username: string): boolean {
+	return getAdmins().includes(username);
+}
+
 export function printConfiguration() {
 	console.log("HOST_PREFIX: " + HOST_PREFIX);
 	console.log("PATH_PREFIX: " + PATH_PREFIX);
 	console.log("LINKS_FILE: " + LINKS_FILE);
 	console.log("USERS_FILE: " + USERS_FILE);
+	console.log("ALLOW_REGISTRATION: " + isRegistrationAllowed());
+	console.log("ADMINS: " + getAdmins().join(", "));
 	console.log("IS TEST: " + isTestEnvironment());
 }
 

@@ -1,7 +1,7 @@
 import express, {NextFunction, Request, Response} from "express";
 
 import {clearFlash, getFlash, getLink, isValidURL, localISOString, read, sendToHome, setFlash, write} from "../util";
-import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
+import {HOST_PREFIX, isAdmin, isRegistrationAllowed, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
 import type {Link, User} from "../types";
 
 const crypto = require("crypto");
@@ -85,6 +85,10 @@ router.use((req, res, next) => {
  * Display the register page.
  */
 router.get("/register", (req, res) => {
+    if (!isRegistrationAllowed()) {
+        goPage(req, res, "login", "Registration is disabled.", false);
+        return;
+    }
     let opts = getFlash(req) ?? {};
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts, req);
@@ -283,7 +287,7 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
         if (linkExists === null || linkExists.length !== 1) {
             // does not exist
             answer("Cannot remove this link as it does not exist.", false);
-        } else if (user !== "admin" && linkExists[0].user !== user) {
+        } else if (!isAdmin(user) && linkExists[0].user !== user) {
             // owned by another user (unless admin)
             answer("Cannot remove this link as it was created by another user.", false);
         } else {
@@ -301,6 +305,12 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
 });
 
 router.post("/register", (req, res) => {
+    if (!isRegistrationAllowed()) {
+        console.log("admin::POST /register - registration is disabled");
+        goPage(req, res, "login", "Registration is disabled.", false);
+        return;
+    }
+
     const {username, password, confirmPassword} = req.body ?? {};
 
     const answer = function (msg: string) {
@@ -393,7 +403,7 @@ function listLinks(user: string): any {
     const ret = [];
     const links = read(LINKS_FILE) as Link[];
     for (const link of links) {
-        if (user === "admin" || link.user === user) {
+        if (isAdmin(user) || link.user === user) {
             // a user can only see their links (except for admin, who sees all)
             ret.push(link);
         }
