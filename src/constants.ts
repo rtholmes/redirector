@@ -1,9 +1,12 @@
-import path from "path";
 import * as fs from "fs";
 
 import {read} from "./util";
 
-require("dotenv").config({quiet: true});
+// Load .env for local development and tests; in Docker the environment comes from compose.
+// As with dotenv, variables already set in the environment win and a missing file is ignored.
+if (fs.existsSync(".env")) {
+	process.loadEnvFile(".env");
+}
 
 // check that all constants exist so that if the environment is not configured
 // correctly we can get a useful error message
@@ -39,15 +42,11 @@ if (PATH_PREFIX.length > 1 && !PATH_PREFIX.startsWith("/")) {
 export let LINKS_FILE = process.env.LINKS_FILE as string;
 export let USERS_FILE = process.env.USERS_FILE as string;
 
-export const SERVER_ROOT = path.join(__dirname, "../");
-export const LOG_PATH = path.join(SERVER_ROOT, "log");
-
 export function printConfiguration() {
 	console.log("HOST_PREFIX: " + HOST_PREFIX);
 	console.log("PATH_PREFIX: " + PATH_PREFIX);
 	console.log("LINKS_FILE: " + LINKS_FILE);
 	console.log("USERS_FILE: " + USERS_FILE);
-	console.log("LOG_PATH: " + LOG_PATH);
 	console.log("IS TEST: " + isTestEnvironment());
 }
 

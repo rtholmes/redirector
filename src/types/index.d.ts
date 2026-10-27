@@ -7,7 +7,7 @@ export interface ApplicationError extends Error {
 export interface Link {
     name: string;
     user: string;
-    created: string; // ts would be better, but this is just a moment string
+    created: string; // ISO 8601 local time with UTC offset
     url: string;
 }
 

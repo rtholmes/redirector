@@ -1,4 +1,4 @@
-import fs from "fs-extra";
+import fs from "fs";
 
 import {Request, Response} from "express";
 import type {Link, User} from "./types";
@@ -47,10 +47,23 @@ export function read(fName: string): User[] | Link[] {
 export function write(fName: string, data: User[] | Link[]) {
 	console.log("util::write( " + fName + " )");
 
-	fs.copySync(fName, fName + ".bak." + Date.now());
+	fs.copyFileSync(fName, fName + ".bak." + Date.now());
 
 	fs.writeFileSync(fName, JSON.stringify(data));
 	return;
+}
+
+/**
+ * Local time as ISO 8601 with UTC offset, e.g. 2026-10-27T14:41:00-07:00.
+ * Same output as moment().format(), which this replaced.
+ */
+export function localISOString(d: Date = new Date()): string {
+	const pad = (n: number) => String(n).padStart(2, "0");
+	const offset = -d.getTimezoneOffset();
+	const sign = offset >= 0 ? "+" : "-";
+	const abs = Math.abs(offset);
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+		+ `${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
 }
 
 export function isValidURL(path: string) {

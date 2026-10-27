@@ -1,11 +1,10 @@
 import express, {NextFunction, Request, Response} from "express";
 
-import {clearSession, getLink, isValidURL, read, sendToHome, write} from "../util";
+import {clearSession, getLink, isValidURL, localISOString, read, sendToHome, write} from "../util";
 import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
 import type {Link, User} from "../types";
 
 const crypto = require("crypto");
-const moment = require("moment");
 
 const router = express.Router();
 
@@ -228,8 +227,7 @@ router.post("/createLink", requireAuth, async function (req, res, next) {
     // must be new and valid; make it!
     console.log("admin::POST /createLink - make new; name: " + name + "; url: " + url);
 
-    // let dStr = moment().format("YYYY-MM-DD_hh:mm:SS");
-    let dStr = moment().format(); // 24h time, show UTC offset
+    let dStr = localISOString(); // 24h time, show UTC offset
 
     links.push({
         name: name,

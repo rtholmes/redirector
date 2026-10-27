@@ -5,25 +5,16 @@ import session from "express-session";
 import * as crypto from "crypto";
 
 import morgan from "morgan";
-import {createStream} from "rotating-file-stream";
-import debugLib from "debug";
 import {engine} from "express-handlebars";
 
 import {ApplicationError} from "./types";
 import {normalizePort} from "./util";
-import {checkConstantExists, checkPermissions, LOG_PATH, PATH_PREFIX, printConfiguration} from "./constants";
+import {checkConstantExists, checkPermissions, PATH_PREFIX, printConfiguration} from "./constants";
 
 import PublicRouter from "./routes/public";
 import AdminRouter from "./routes/admin";
 
-const debug = debugLib("server");
-
 export default class Server {
-
-	private accessLogStream = createStream("access.log", {
-		interval: "1d", // rotate daily
-		path: LOG_PATH
-	});
 
 	private app: Express = express();
 	private server: http.Server;
@@ -35,10 +26,8 @@ export default class Server {
 		checkPermissions();
 		printConfiguration();
 
-		// Apache commons style logging
-		this.app.use(morgan("combined", {
-			stream: this.accessLogStream
-		}));
+		// Apache combined-format access log to stdout, where `docker logs` collects it
+		this.app.use(morgan("combined"));
 
 		this.app.use(express.json());
 		this.app.use(express.urlencoded({extended: false}));
@@ -101,18 +90,6 @@ export default class Server {
 					break;
 				default:
 					throw error;
-			}
-		});
-
-		that.server.on("listening", () => {
-			const addr = that.server.address();
-			if (addr) {
-				const bind = typeof addr === "string"
-					? "pipe " + addr
-					: "port " + addr.port;
-				debug("Listening on " + bind);
-			} else {
-				debug("Unable to create address");
 			}
 		});
 
