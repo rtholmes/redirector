@@ -1,6 +1,6 @@
 import express, {Request, Response} from "express";
 
-import {clearSession, getLink, sendToHome} from "../util";
+import {clearFlash, getFlash, getLink, sendToHome, setFlash} from "../util";
 import {isTestEnvironment, PATH_PREFIX} from "../constants";
 import {setLoggedOut} from "./admin";
 
@@ -13,12 +13,13 @@ router.get("/", async function (req, res, next) {
     console.log("public::GET / - start");
     let opts = null;
 
-    if (typeof (req.session as any).opts === "object") {
-        console.log("public::GET / - start; has session opts");
-        opts = (req.session as any).opts;
-        clearSession(req);
+    const flash = getFlash(req);
+    if (flash !== undefined) {
+        console.log("public::GET / - start; has flash opts");
+        opts = flash;
+        clearFlash(res);
     } else {
-        console.log("public::GET / - start; no session opts");
+        console.log("public::GET / - start; no flash opts");
         opts = {};
     }
     opts.prefix = PATH_PREFIX;
@@ -67,7 +68,7 @@ function sendToRedirect(name: string, req: Request, res: Response) {
         console.log("public::sendToRedirect(..) - found; name: " + name);
         res.redirect(301, url);
     } else {
-        let opts = (req.session as any).opts || {};
+        let opts = getFlash(req) ?? {};
         console.log("public::sendToRedirect(..) - not found; initial opts: " + JSON.stringify(opts));
 
         opts.message = "Name not found: " + name;
@@ -76,7 +77,7 @@ function sendToRedirect(name: string, req: Request, res: Response) {
 
         setLoggedOut(opts, req);
 
-        (req.session as any).opts = opts;
+        setFlash(res, opts);
         console.log("public::sendToRedirect(..) - not found; opts: " + JSON.stringify(opts));
 
         sendToHome(res, opts);

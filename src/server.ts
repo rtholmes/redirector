@@ -1,14 +1,12 @@
 import http from "http";
 import express, {Express} from "express";
 import cookieParser from "cookie-parser";
-import session from "express-session";
-import * as crypto from "crypto";
 
 import morgan from "morgan";
-import {engine} from "express-handlebars";
 
 import {ApplicationError} from "./types";
 import {normalizePort} from "./util";
+import {handlebarsEngine} from "./viewEngine";
 import {checkConstantExists, checkPermissions, PATH_PREFIX, printConfiguration} from "./constants";
 
 import PublicRouter from "./routes/public";
@@ -33,20 +31,12 @@ export default class Server {
 		this.app.use(express.urlencoded({extended: false}));
 
 		this.app.use(cookieParser());
-		this.app.use(session({
-			secret: crypto.randomBytes(4).toString("hex"),
-			resave: false,
-			saveUninitialized: false,
-			cookie: {maxAge: 60 * 60 * 1000} // 60 min
-		}));
 
 		this.app.use(PATH_PREFIX + "/admin/static", express.static("public"));
 		this.app.use(PATH_PREFIX + "/admin", AdminRouter);
 		this.app.use(PATH_PREFIX + "/", PublicRouter);
 
-		this.app.engine("hbs", engine({
-			extname: ".hbs"
-		}));
+		this.app.engine("hbs", handlebarsEngine);
 
 		this.app.set("view engine", "hbs");
 

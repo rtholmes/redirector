@@ -51,7 +51,7 @@ export function printConfiguration() {
 }
 
 export function isTestEnvironment() {
-	return typeof global.it === "function" && typeof global.afterEach === "function";
+	return process.env.NODE_TEST_CONTEXT !== undefined;
 }
 
 export function configureForTesting() {

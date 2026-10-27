@@ -1,6 +1,6 @@
 import express, {NextFunction, Request, Response} from "express";
 
-import {clearSession, getLink, isValidURL, localISOString, read, sendToHome, write} from "../util";
+import {clearFlash, getFlash, getLink, isValidURL, localISOString, read, sendToHome, setFlash, write} from "../util";
 import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
 import type {Link, User} from "../types";
 
@@ -85,7 +85,7 @@ router.use((req, res, next) => {
  * Display the register page.
  */
 router.get("/register", (req, res) => {
-    let opts = (req.session as any).opts || {};
+    let opts = getFlash(req) ?? {};
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts, req);
     console.log("admin::GET /register; opts: " + JSON.stringify(opts));
@@ -99,7 +99,6 @@ router.get("/logout", (req, res) => {
     res.cookie("AuthToken", "");
     res.cookie("AuthUser", "");
 
-    clearSession(req);
     opts.isLoggedOut = true;
     opts.prefix = PATH_PREFIX;
 
@@ -120,7 +119,7 @@ export function setLoggedOut(opts: any, req: Request) {
  * Display the login page.
  */
 router.get("/login", (req, res) => {
-    let opts = (req.session as any).opts || {};
+    let opts = getFlash(req) ?? {};
     opts.prefix = PATH_PREFIX;
     setLoggedOut(opts, req);
     console.log("admin::GET /login; opts: " + JSON.stringify(opts));
@@ -131,18 +130,23 @@ router.get("/links", requireAuth, async function (req, res) {
     console.log("admin::GET /links - start;");
     let opts = null;
 
-    if (typeof (req.session as any).opts === "object") {
-        console.log("admin::GET /links - start; has session opts");
-        opts = (req.session as any).opts;
-        clearSession(req);
+    const flash = getFlash(req);
+    if (flash !== undefined) {
+        console.log("admin::GET /links - start; has flash opts");
+        opts = flash;
+        clearFlash(res);
     }
 
     if (opts === null || opts.target !== "links") {
-        console.log("admin::GET /links - start; no session opts");
+        console.log("admin::GET /links - start; no flash opts");
         const links = listLinks((req as any).authUser);
         opts = {
             linkTable: links
         };
+    } else if (opts.withLinkTable === true) {
+        // the flash records that this page showed the user's links; rebuild them
+        opts.linkTable = listLinks((req as any).authUser);
+        delete opts.withLinkTable;
     }
     opts.prefix = PATH_PREFIX;
     opts.HOST = HOST_PREFIX + PATH_PREFIX;
@@ -436,7 +440,7 @@ function goPage(req: Request, res: Response, target: string, msg: string, worked
     setLoggedOut(opts, req);
 
     opts.target = target;
-    (req.session as any).opts = opts;
+    setFlash(res, opts);
 
     if (target === "home") {
         console.log("admin::goPage(..) - home");

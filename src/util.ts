@@ -1,4 +1,5 @@
 import fs from "fs";
+import * as crypto from "crypto";
 
 import {Request, Response} from "express";
 import type {Link, User} from "./types";
@@ -105,12 +106,58 @@ export function getLink(name: string): string | null {
 	return null;
 }
 
-/**
- * Clear session opts after they have been consumed
- * @param req
+/*
+ * One-shot page state ("flash"), such as "Name not found", carried across a redirect.
+ *
+ * This used to live in an in-memory express-session store, which never evicts sessions
+ * that are not revisited. It is now an httpOnly cookie signed with a per-process key, so
+ * like the old session it cannot be forged by the client and is dropped on restart.
+ *
+ * The link table is not stored (it can exceed cookie size limits). Instead a marker
+ * records that the page showed it, and GET /links rebuilds it from the links file.
  */
-export function clearSession(req: Request) {
-	delete (req.session as any).opts;
+const FLASH_COOKIE = "flash";
+const FLASH_MAX_AGE = 60 * 60 * 1000; // 60 min, as the session cookie was
+const FLASH_KEY = crypto.randomBytes(32);
+
+function signFlash(payload: string): string {
+	return crypto.createHmac("sha256", FLASH_KEY).update(payload).digest("base64url");
+}
+
+export function getFlash(req: Request): any | undefined {
+	const raw = req.cookies?.[FLASH_COOKIE];
+	if (typeof raw !== "string") {
+		return undefined;
+	}
+	const dot = raw.lastIndexOf(".");
+	const payload = raw.slice(0, dot);
+	const mac = Buffer.from(raw.slice(dot + 1));
+	const expected = Buffer.from(signFlash(payload));
+	if (dot < 0 || mac.length !== expected.length || !crypto.timingSafeEqual(mac, expected)) {
+		return undefined;
+	}
+	try {
+		const opts = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+		return typeof opts === "object" && opts !== null ? opts : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+export function setFlash(res: Response, opts: any) {
+	const {linkTable, ...rest} = opts;
+	if (linkTable !== undefined) {
+		rest.withLinkTable = true;
+	}
+	const payload = Buffer.from(JSON.stringify(rest)).toString("base64url");
+	res.cookie(FLASH_COOKIE, payload + "." + signFlash(payload), {httpOnly: true, maxAge: FLASH_MAX_AGE});
+}
+
+/**
+ * Clear the flash after it has been consumed.
+ */
+export function clearFlash(res: Response) {
+	res.clearCookie(FLASH_COOKIE);
 }
 
 export function sendToHome(res: Response, opts: any) {
