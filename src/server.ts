@@ -24,6 +24,10 @@ export default class Server {
 		checkPermissions();
 		printConfiguration();
 
+		// One proxy (nginx) sits in front; trust its X-Forwarded-For so req.ip, and the
+		// access log below, record the visitor rather than the proxy.
+		this.app.set("trust proxy", 1);
+
 		// Apache combined-format access log to stdout, where `docker logs` collects it
 		this.app.use(morgan("combined"));
 
@@ -83,15 +87,6 @@ export default class Server {
 			}
 		});
 
-		that.server.on("SIGTERM", () => {
-			console.log("Server::start() - SIGTERM received");
-			that.shutDown();
-		});
-		that.server.on("SIGKILL", () => {
-			console.log("Server::start() - SIGKILL received");
-            that.shutDown();
-		});
-
 		console.log("Server::start() - Starting application server");
 		that.server.listen(port);
 		console.log(`Server::start() - Server is up @ http://localhost:${port}${PATH_PREFIX}`);
@@ -103,9 +98,17 @@ export default class Server {
 		return this.app;
 	}
 
-	public async shutDown() {
+	/**
+	 * Stop accepting connections and resolve once in-flight requests have finished.
+	 */
+	public shutDown(): Promise<void> {
 		console.log("Server::shutdown() - starting shutdown");
-		await this.server.close();
-		console.log("Server::shutdown() - done");
+		return new Promise(resolve => {
+			this.server.close(() => {
+				console.log("Server::shutdown() - done");
+				resolve();
+			});
+			this.server.closeIdleConnections();
+		});
 	}
 }

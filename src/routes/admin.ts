@@ -309,7 +309,7 @@ router.post("/register", (req, res) => {
     }
 
     if (typeof username === "undefined" || typeof password === "undefined" || typeof confirmPassword === "undefined") {
-        console.log("admin::POST /register - username: " + username + "; password: " + password + "; confirm: " + confirmPassword);
+        console.log("admin::POST /register - username: " + username + "; password provided: " + (password !== undefined) + "; confirm provided: " + (confirmPassword !== undefined));
         answer("Required params missing.");
         return;
     }
@@ -349,7 +349,7 @@ router.post("/login", (req, res) => {
     console.log("admin::POST login/ - start; username: " + username);
 
     if (typeof username === "undefined" || typeof password === "undefined") {
-        console.log("admin::POST /login - username: " + username + "; password: " + password);
+        console.log("admin::POST /login - username: " + username + "; password provided: " + (password !== undefined));
         goPage(req, res, "login", "Required params missing.", false);
         return;
     }

@@ -1,5 +1,7 @@
 import {after, before, describe, it} from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 
 import {configureForTesting, configurePrefixForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
 import Server from "../src/server";
@@ -21,6 +23,8 @@ const runTests = function (title: string, noPrefix: boolean) {
         before(async function () {
             // runs once before the first test in this block
             console.log("before - updating env");
+            fs.mkdirSync(path.dirname(LINKS_FILE), {recursive: true});
+            fs.mkdirSync(path.dirname(USERS_FILE), {recursive: true});
             configureForTesting();
             if (noPrefix === false) {
                 configurePrefixForTesting();
