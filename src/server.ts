@@ -1,13 +1,13 @@
 import http from "http";
 import express, {Express} from "express";
-import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import * as crypto from "crypto";
 
 import morgan from "morgan";
-import rfs from "rotating-file-stream";
+import {createStream} from "rotating-file-stream";
 import debugLib from "debug";
+import {engine} from "express-handlebars";
 
 import {ApplicationError} from "./types";
 import {normalizePort} from "./util";
@@ -17,11 +17,10 @@ import PublicRouter from "./routes/public";
 import AdminRouter from "./routes/admin";
 
 const debug = debugLib("server");
-const exphbs = require("express-handlebars");
 
 export default class Server {
 
-	private accessLogStream = rfs("access.log", {
+	private accessLogStream = createStream("access.log", {
 		interval: "1d", // rotate daily
 		path: LOG_PATH
 	});
@@ -41,8 +40,8 @@ export default class Server {
 			stream: this.accessLogStream
 		}));
 
-		this.app.use(bodyParser.json());
-		this.app.use(bodyParser.urlencoded({extended: false}));
+		this.app.use(express.json());
+		this.app.use(express.urlencoded({extended: false}));
 
 		this.app.use(cookieParser());
 		this.app.use(session({
@@ -56,7 +55,7 @@ export default class Server {
 		this.app.use(PATH_PREFIX + "/admin", AdminRouter);
 		this.app.use(PATH_PREFIX + "/", PublicRouter);
 
-		this.app.engine("hbs", exphbs({
+		this.app.engine("hbs", engine({
 			extname: ".hbs"
 		}));
 

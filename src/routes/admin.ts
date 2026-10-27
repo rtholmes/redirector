@@ -2,7 +2,7 @@ import express, {NextFunction, Request, Response} from "express";
 
 import {clearSession, getLink, isValidURL, read, sendToHome, write} from "../util";
 import {HOST_PREFIX, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../constants";
-import {Link, User} from "types";
+import type {Link, User} from "../types";
 
 const crypto = require("crypto");
 const moment = require("moment");
@@ -154,7 +154,7 @@ router.get("/links", requireAuth, async function (req, res) {
 });
 
 router.post("/createLink", requireAuth, async function (req, res, next) {
-    let {name, url} = req.body;
+    let {name, url} = req.body ?? {};
     console.log("admin::POST /createLink - start; name: " + name + "; url: " + url);
 
     if (typeof name !== "string" || typeof url !== "string") {
@@ -299,7 +299,7 @@ router.get("/removeLink", requireAuth, async function (req: Request, res: Respon
 });
 
 router.post("/register", (req, res) => {
-    const {username, password, confirmPassword} = req.body;
+    const {username, password, confirmPassword} = req.body ?? {};
 
     const answer = function (msg: string) {
         console.log("admin::POST /register - answer; msg: " + msg);
@@ -343,7 +343,7 @@ router.post("/register", (req, res) => {
  * if not, forward back to the login page.
  */
 router.post("/login", (req, res) => {
-    const {username, password} = req.body;
+    const {username, password} = req.body ?? {};
     console.log("admin::POST login/ - start; username: " + username);
 
     if (typeof username === "undefined" || typeof password === "undefined") {

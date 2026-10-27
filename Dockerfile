@@ -14,7 +14,8 @@ COPY yarn.lock     ./
 #COPY .env          ./
 #COPY data          ./data
 
-RUN yarn install
+# clean the yarn cache in the same layer: it holds every platform's TypeScript binary (~1GB)
+RUN yarn install --frozen-lockfile && yarn cache clean
 RUN yarn build
 
 CMD ["node", "./build/index.js"]

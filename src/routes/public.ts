@@ -32,7 +32,7 @@ router.get("/", async function (req, res, next) {
 /**
  * Main forwarding route.
  */
-router.get("/*", async function (req, res, next) {
+router.get("/*splat", async function (req, res, next) {
     let name = req.path;
     console.log("public::GET /* - start; name: " + name);
     sendToRedirect(name, req, res);
@@ -42,7 +42,7 @@ router.get("/*", async function (req, res, next) {
  * Route used by the submit button on the homepage.
  */
 router.post("/fwd", async function (req, res, next) {
-    let name = req.body.name;
+    let name = req.body?.name;
     console.log("public::POST /fwd - start; name: " + name);
     sendToRedirect(name, req, res);
 });

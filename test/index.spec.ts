@@ -1,12 +1,11 @@
-import "mocha";
-import chai, {expect} from "chai";
-import chaiHttp from "chai-http";
+import {expect, use} from "chai";
+import chaiHttp, {request} from "chai-http";
 
 import {configureForTesting, configurePrefixForTesting, LINKS_FILE, PATH_PREFIX, USERS_FILE} from "../src/constants";
 import Server from "../src/server";
 import {read} from "../src/util";
 
-chai.use(chaiHttp);
+use(chaiHttp);
 
 // tests are encapsulated in a function so we can run them twice
 // once with a prefix and once without
@@ -44,7 +43,7 @@ const runTests = function (title: string, noPrefix: boolean) {
         describe("registration", () => {
 
             it("succeeds with valid values", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const startUserCount = read(USERS_FILE).length;
                 const res = await agent.post(PATH_PREFIX + '/admin/register')
                     .send({username: 'test', password: 'testPW', confirmPassword: 'testPW'});
@@ -57,7 +56,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when required params missing", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/register')
                     .send({wrongkey: 'foo', password: 'bar', confirmPassword: 'bar'});
 
@@ -67,7 +66,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails with non-matching passwords", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/register')
                     .send({username: 'foo', password: 'bar', confirmPassword: 'barX'});
 
@@ -77,7 +76,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails with already existing user", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/register')
                     .send({username: 'test', password: 'testPW', confirmPassword: 'testPW'});
 
@@ -90,7 +89,7 @@ const runTests = function (title: string, noPrefix: boolean) {
         describe("login", () => {
 
             it("fails with bad user/pass", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/login')
                     .send({username: 'foo', password: 'bar'});
 
@@ -100,7 +99,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when required params missing", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/login')
                     .send({badkey: 'test', password: 'testPW'});
 
@@ -110,7 +109,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("succeeds with good credentials", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/login')
                     .send({username: 'test', password: 'testPW'});
 
@@ -122,7 +121,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("succeeds at logging out", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.get(PATH_PREFIX + '/admin/logout')
                     .send({username: 'test', password: 'testPW'});
 
@@ -137,7 +136,7 @@ const runTests = function (title: string, noPrefix: boolean) {
         describe("link creation", () => {
 
             it("fails when user not logged in", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     // .set('Cookie', 'cookieName=cookieValue;otherName=otherValue')
                     .send({name: 'test', password: 'https://se.cs.ubc.ca/'});
@@ -150,7 +149,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when user incorrectly logged in", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=BADTOKEN')
                     .send({name: 'test', password: 'https://se.cs.ubc.ca/'});
@@ -163,7 +162,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when required params are not present", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({wrongkey: 't', url: 'https://se.cs.ubc.ca/'});
@@ -174,7 +173,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when name is too short", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({name: 't', url: 'https://se.cs.ubc.ca/'});
@@ -185,7 +184,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when name starts with admin", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({name: 'admin/test', url: 'https://se.cs.ubc.ca/'});
@@ -196,7 +195,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when url is not valid", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({name: 'test/**', url: 'google.ca'}); // need http/https
@@ -207,7 +206,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("succeeds with valid values", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const startLinkCount = read(LINKS_FILE).length;
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
@@ -222,7 +221,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("succeeds with valid wildcard values", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({name: 'test/deep/*/*/deeperthings/*', url: 'https://se.cs.ubc.ca/'});
@@ -236,7 +235,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when link already exists", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/admin/createLink')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
                     .send({name: 'test', url: 'https://se.cs.ubc.ca/ALTERNATE'});
@@ -250,7 +249,7 @@ const runTests = function (title: string, noPrefix: boolean) {
         describe("public routes", () => {
 
             it("successfully redirects with /test", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.get(PATH_PREFIX + '/test').send().redirects(0);
 
                 console.log(res.header);
@@ -259,7 +258,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("successfully redirects with fwd/", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/fwd')
                     .send({name: 'test'})
                     .redirects(0);
@@ -270,7 +269,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("successfully renders with /", async () => {
-                const res = await chai.request(app).get(PATH_PREFIX + '/');
+                const res = await request.execute(app).get(PATH_PREFIX + '/');
 
                 expect(res).to.have.status(200);
                 expect(res.text).to.not.match(/alert/);
@@ -291,7 +290,7 @@ const runTests = function (title: string, noPrefix: boolean) {
                     // so this should be PATH_PREFIX + '/admin/...'
                     // but: nginx rewrite actually takes care of the prefix
                     // so the system (less the views) is unaware of it
-                    const res = await chai.request(app).get(PATH_PREFIX + '/admin/static/' + image);
+                    const res = await request.execute(app).get(PATH_PREFIX + '/admin/static/' + image);
                     // console.log(res.header);
                     expect(res).to.have.status(200);
                     expect(res.header["content-type"]).to.equal("image/png");
@@ -302,7 +301,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("successfully redirects to / with invalid fwd name", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/fwd')
                     .send({name: 'DOESNOTEXIST'});
 
@@ -313,7 +312,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fail to redirect with invalid /", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.get(PATH_PREFIX + '/NOTTHERE').send();
 
                 expect(res).to.have.status(200);
@@ -322,7 +321,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails to redirect with invalid fwd/", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.post(PATH_PREFIX + '/fwd')
                     .send({name: 'NOTTHERE'});
 
@@ -336,7 +335,7 @@ const runTests = function (title: string, noPrefix: boolean) {
         describe("link deletion", () => {
 
             it("fails without credentials", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.get(PATH_PREFIX + '/admin/removeLink?name=test')
                     .set('Cookie', 'AuthUser=test; AuthToken=BADAUTH')
 
@@ -348,7 +347,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails when name does not exist", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.get(PATH_PREFIX + '/admin/removeLink?name=DOESNOTEXIST')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
 
@@ -360,7 +359,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("fails without required params", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const res = await agent.get(PATH_PREFIX + '/admin/removeLink?wrongkey=test')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')
 
@@ -370,7 +369,7 @@ const runTests = function (title: string, noPrefix: boolean) {
             });
 
             it("succeeds when link exists", async () => {
-                const agent = chai.request.agent(app); // agent supports sessions
+                const agent = request.agent(app); // agent supports sessions
                 const startLinkCount = read(LINKS_FILE).length;
                 const res = await agent.get(PATH_PREFIX + '/admin/removeLink?name=test')
                     .set('Cookie', 'AuthUser=test; AuthToken=tlLWP9ko6JrJVdyNjJe/BOjd2HuBP3BQS6/kkc4LKgs=')

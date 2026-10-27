@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 
 import {Request, Response} from "express";
-import {Link, User} from "types";
+import type {Link, User} from "./types";
 import {LINKS_FILE, PATH_PREFIX} from "./constants";
 
 const URL = require("url").URL;

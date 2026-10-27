@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 import {read} from "./util";
 
-require("dotenv").config();
+require("dotenv").config({quiet: true});
 
 // check that all constants exist so that if the environment is not configured
 // correctly we can get a useful error message
